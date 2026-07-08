@@ -1,0 +1,794 @@
+:root {
+  --paper: #f8f6f0;
+  --paper-strong: #ffffff;
+  --ink: #151514;
+  --muted: #6f6a61;
+  --road: #0c0d0b;
+  --road-soft: #181a16;
+  --line: rgba(21, 21, 20, 0.14);
+  --light-line: rgba(255, 255, 255, 0.18);
+  --orange: #ef6b1b;
+  --red: #b92720;
+  --green: #355847;
+  --gold: #d8a64d;
+  --shadow: 0 22px 70px rgba(16, 17, 15, 0.18);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  line-height: 1.55;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 20;
+  translate: 0 -160%;
+  background: var(--paper-strong);
+  color: var(--ink);
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+
+.skip-link:focus {
+  translate: 0 0;
+}
+
+.hero {
+  position: relative;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  color: #fff;
+  background: var(--road);
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -3;
+}
+
+.hero::before,
+.hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+}
+
+.hero::before {
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.72), rgba(0, 0, 0, 0.18) 56%, rgba(0, 0, 0, 0.54)),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.78), transparent 38%);
+}
+
+.hero::after {
+  background: radial-gradient(circle at 18% 35%, rgba(239, 107, 27, 0.26), transparent 28%);
+  mix-blend-mode: screen;
+}
+
+.nav {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem max(1.25rem, calc((100vw - 1180px) / 2));
+}
+
+.brand,
+.nav-links a,
+.button {
+  text-decoration: none;
+}
+
+.brand {
+  font-weight: 800;
+  font-size: 1rem;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+  padding: 0.25rem;
+  border: 1px solid var(--light-line);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.32);
+  backdrop-filter: blur(18px);
+}
+
+.nav-links a {
+  padding: 0.55rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.nav-links a:hover,
+.nav-links a:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.hero-copy {
+  width: min(92vw, 850px);
+  padding: 28svh max(1.25rem, calc((100vw - 1180px) / 2)) 8rem;
+}
+
+.eyebrow,
+.section-label {
+  margin: 0 0 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--orange);
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: 3rem;
+  line-height: 0.94;
+  max-width: 770px;
+}
+
+.hero-copy p:not(.eyebrow) {
+  max-width: 670px;
+  margin: 1.35rem 0 0;
+  font-size: 1.12rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.7rem;
+}
+
+.button {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  padding: 0.78rem 1.05rem;
+  font-weight: 800;
+  border: 1px solid transparent;
+}
+
+.button.primary {
+  background: #fff;
+  color: var(--road);
+}
+
+.button.ghost {
+  color: #fff;
+  border-color: var(--light-line);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.intro,
+.timeline,
+.rides,
+.gallery {
+  width: min(1180px, calc(100% - 2.5rem));
+  margin: 0 auto;
+  padding: 6.5rem 0;
+}
+
+.intro {
+  display: grid;
+  grid-template-columns: 0.8fr 1.4fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.intro h2,
+.section-heading h2,
+.garage h2,
+.memorial h2 {
+  margin: 0;
+  font-size: 2.65rem;
+  line-height: 1.04;
+}
+
+.intro p,
+.section-heading p,
+.garage-copy p,
+.memorial-copy p {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.stat {
+  min-height: 168px;
+  display: grid;
+  align-content: center;
+  padding: 1.5rem;
+  background: var(--paper);
+}
+
+.stat-number {
+  display: block;
+  font-size: 2.15rem;
+  line-height: 1;
+  font-weight: 900;
+}
+
+.stat-label {
+  display: block;
+  margin-top: 0.55rem;
+  color: var(--muted);
+}
+
+.section-heading {
+  max-width: 730px;
+  margin-bottom: 2.3rem;
+}
+
+.timeline-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.1rem;
+}
+
+.timeline-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 1.05rem;
+  height: 2px;
+  background: linear-gradient(90deg, var(--green), var(--orange), var(--red));
+}
+
+.timeline-item {
+  position: relative;
+  padding-top: 3.1rem;
+}
+
+.timeline-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.68rem;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 3px solid var(--orange);
+  box-shadow: 0 0 0 6px var(--paper);
+}
+
+.timeline-item time {
+  display: inline-block;
+  font-weight: 900;
+  color: var(--green);
+  margin-bottom: 0.4rem;
+}
+
+.timeline-item h3 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.timeline-item p {
+  margin: 0.5rem 0 0;
+  color: var(--muted);
+}
+
+.garage {
+  min-height: 740px;
+  display: grid;
+  grid-template-columns: minmax(460px, 0.52fr) 1fr;
+  gap: 0;
+  align-items: stretch;
+  background: var(--road);
+  color: #fff;
+}
+
+.garage-copy {
+  padding: 5rem 2.25rem 5rem max(1.25rem, calc((100vw - 1180px) / 2));
+  align-self: center;
+}
+
+.garage-copy p {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.focus-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.6rem;
+}
+
+.focus-button {
+  min-height: 42px;
+  border: 1px solid var(--light-line);
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.focus-button.is-active,
+.focus-button:hover,
+.focus-button:focus-visible {
+  background: #fff;
+  color: var(--road);
+}
+
+.garage-stage {
+  min-height: 740px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(239, 107, 27, 0.26), transparent 24%),
+    linear-gradient(180deg, #141711, #070806);
+}
+
+#garageCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.webgl-fallback {
+  position: absolute;
+  inset: auto 1rem 1rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.vehicle-card {
+  display: grid;
+  grid-template-columns: 1fr 0.9fr;
+  gap: 2.2rem;
+  align-items: center;
+  padding: 1.1rem;
+  margin-top: 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-strong);
+  box-shadow: var(--shadow);
+}
+
+.vehicle-card.reverse {
+  grid-template-columns: 0.9fr 1fr;
+}
+
+.vehicle-card.reverse .vehicle-copy {
+  order: 2;
+}
+
+.vehicle-card.reverse .vehicle-art {
+  order: 1;
+}
+
+.vehicle-copy {
+  padding: 1.2rem;
+}
+
+.vehicle-copy h3 {
+  margin: 0;
+  font-size: 2.35rem;
+  line-height: 1.05;
+}
+
+.vehicle-copy p {
+  margin: 1rem 0 0;
+  color: var(--muted);
+  font-size: 1.02rem;
+}
+
+.memory-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin: 1.4rem 0;
+}
+
+.memory-list div {
+  border-top: 2px solid var(--line);
+  padding-top: 0.75rem;
+}
+
+.memory-list dt {
+  font-weight: 900;
+  color: var(--ink);
+}
+
+.memory-list dd {
+  margin: 0.2rem 0 0;
+  color: var(--muted);
+}
+
+.spec-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.spec-list li {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--ink);
+  background: rgba(248, 246, 240, 0.8);
+}
+
+.vehicle-art {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--road);
+}
+
+.vehicle-art img {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  object-fit: cover;
+  transition: transform 700ms ease;
+}
+
+.vehicle-card:hover .vehicle-art img {
+  transform: scale(1.035);
+}
+
+.vehicle-art figcaption,
+.photo-frame figcaption {
+  padding: 0.75rem 0.85rem;
+  color: rgba(255, 255, 255, 0.78);
+  background: var(--road);
+  font-size: 0.9rem;
+}
+
+.cbr-card {
+  border-color: rgba(185, 39, 32, 0.32);
+}
+
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1rem;
+}
+
+.photo-frame {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--road);
+  box-shadow: var(--shadow);
+}
+
+.photo-frame.tall {
+  grid-column: span 5;
+  aspect-ratio: 4 / 5;
+}
+
+.photo-frame.wide {
+  grid-column: span 7;
+  aspect-ratio: 16 / 10;
+}
+
+.photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 700ms ease;
+}
+
+.photo-frame:hover img {
+  transform: scale(1.035);
+}
+
+.photo-frame.rotate-clockwise {
+  display: grid;
+  place-items: center;
+}
+
+.photo-frame.rotate-clockwise img {
+  object-fit: contain;
+  transform: rotate(90deg) scale(1.42);
+}
+
+.photo-frame.rotate-clockwise:hover img {
+  transform: rotate(90deg) scale(1.48);
+}
+
+.photo-frame figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
+  padding-top: 3rem;
+}
+
+.memorial {
+  display: grid;
+  grid-template-columns: 0.95fr 1.05fr;
+  align-items: center;
+  gap: 0;
+  background: #11110f;
+  color: #fff;
+}
+
+.memorial-image {
+  min-height: 720px;
+  overflow: hidden;
+}
+
+.memorial-image img {
+  width: 100%;
+  height: 100%;
+  min-height: 720px;
+  object-fit: cover;
+}
+
+.memorial-copy {
+  padding: 5rem max(1.25rem, calc((100vw - 1180px) / 2)) 5rem 4rem;
+}
+
+.memorial-copy p {
+  color: rgba(255, 255, 255, 0.76);
+}
+
+.footer {
+  padding: 2rem max(1.25rem, calc((100vw - 1180px) / 2));
+  background: var(--road);
+  color: rgba(255, 255, 255, 0.72);
+  border-top: 1px solid var(--light-line);
+}
+
+.footer p {
+  margin: 0;
+}
+
+.footer p + p {
+  margin-top: 0.55rem;
+}
+
+.footer a {
+  color: #fff;
+  text-underline-offset: 0.2em;
+}
+
+.js .reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 700ms ease,
+    transform 700ms ease;
+}
+
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (min-width: 900px) {
+  .hero h1 {
+    font-size: 5.4rem;
+  }
+
+  .intro h2,
+  .section-heading h2,
+  .memorial h2 {
+    font-size: 3.6rem;
+  }
+
+  .garage h2 {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 980px) {
+  .intro,
+  .garage,
+  .memorial,
+  .vehicle-card,
+  .vehicle-card.reverse {
+    grid-template-columns: 1fr;
+  }
+
+  .vehicle-card.reverse .vehicle-copy,
+  .vehicle-card.reverse .vehicle-art {
+    order: initial;
+  }
+
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .timeline-track {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .timeline-track::before {
+    display: none;
+  }
+
+  .garage,
+  .garage-stage {
+    min-height: auto;
+  }
+
+  .garage-stage {
+    height: 560px;
+  }
+
+  .memorial-image,
+  .memorial-image img {
+    min-height: 520px;
+  }
+
+  .memorial-copy {
+    padding: 4rem 1.25rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .nav {
+    align-items: flex-start;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .hero-copy {
+    padding-top: 28svh;
+    padding-bottom: 5rem;
+  }
+
+  .hero h1 {
+    font-size: 2.45rem;
+  }
+
+  .intro,
+  .timeline,
+  .rides,
+  .gallery {
+    width: min(100% - 1.25rem, 1180px);
+    padding: 4.5rem 0;
+  }
+
+  .intro h2,
+  .section-heading h2,
+  .garage h2,
+  .memorial h2 {
+    font-size: 2.25rem;
+  }
+
+  .stats,
+  .timeline-track,
+  .memory-list {
+    grid-template-columns: 1fr;
+  }
+
+  .stat {
+    min-height: 132px;
+  }
+
+  .garage-copy {
+    padding: 4rem 1.25rem 2rem;
+  }
+
+  .garage-stage {
+    height: 480px;
+  }
+
+  .vehicle-card {
+    padding: 0.75rem;
+    gap: 1rem;
+  }
+
+  .vehicle-copy {
+    padding: 0.5rem;
+  }
+
+  .vehicle-copy h3 {
+    font-size: 2rem;
+  }
+
+  .vehicle-art img {
+    min-height: 360px;
+  }
+
+  .gallery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-frame.tall,
+  .photo-frame.wide {
+    grid-column: auto;
+  }
+
+  .photo-frame.wide {
+    aspect-ratio: 4 / 3;
+  }
+
+  .memorial-image,
+  .memorial-image img {
+    min-height: 430px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

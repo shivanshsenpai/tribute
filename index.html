@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A personal tribute webpage for the Activa, Yezdi Roadster, and CBR 250R Repsol."
+    />
+    <title>Three Rides, One Life</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to memories</a>
+
+    <header class="hero" id="home">
+      <img
+        class="hero-bg"
+        src="assets/generated/hero-tribute.png"
+        alt="AI generated tribute scene showing a scooter, roadster, and sport bike on a mountain road at sunrise"
+      />
+      <nav class="nav" aria-label="Primary navigation">
+        <a class="brand" href="#home">Three Rides</a>
+        <div class="nav-links">
+          <a href="#timeline">Timeline</a>
+          <a href="#garage">3D Garage</a>
+          <a href="#rides">Rides</a>
+          <a href="#gallery">Gallery</a>
+        </div>
+      </nav>
+
+      <div class="hero-copy reveal">
+        <p class="eyebrow">2018 to now</p>
+        <h1>For the Two-Wheelers That Carried Me.</h1>
+        <p>
+          One scooter that taught the road, one Roadster that made every night feel cinematic,
+          and one CBR that became a shield when life came too close.
+        </p>
+        <div class="hero-actions" aria-label="Page actions">
+          <a class="button primary" href="#rides">Meet them</a>
+          <a class="button ghost" href="#cbr-memory">For the CBR</a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="intro">
+        <div class="section-label">A small tribute</div>
+        <h2>Not just machines. Milestones with wheels.</h2>
+        <p>
+          This page keeps the good things close: the Activa's dependable daily courage,
+          the Yezdi's dark-road personality, and the CBR 250R Repsol's final act of
+          protection. It is simple on purpose. The memories do the heavy lifting.
+        </p>
+      </section>
+
+      <section class="stats" aria-label="Known ride milestones">
+        <article class="stat reveal">
+          <span class="stat-number" data-count="41000">0</span>
+          <span class="stat-label">km on the Activa</span>
+        </article>
+        <article class="stat reveal">
+          <span class="stat-number" data-count="20000">0</span>
+          <span class="stat-label">km on the Yezdi Roadster</span>
+        </article>
+        <article class="stat reveal">
+          <span class="stat-number">Rs 28k</span>
+          <span class="stat-label">CBR bought from pocket money</span>
+        </article>
+        <article class="stat reveal">
+          <span class="stat-number">3</span>
+          <span class="stat-label">rides that changed the story</span>
+        </article>
+      </section>
+
+      <section class="timeline" id="timeline">
+        <div class="section-heading">
+          <p class="section-label">Timeline</p>
+          <h2>The road, in four dates.</h2>
+        </div>
+        <div class="timeline-track">
+          <article class="timeline-item reveal">
+            <time>2018</time>
+            <h3>Activa begins the journey</h3>
+            <p>The first daily partner, the one that made riding normal, useful, and mine.</p>
+          </article>
+          <article class="timeline-item reveal">
+            <time>18 Oct 2023</time>
+            <h3>Yezdi Roadster joins</h3>
+            <p>Bought second hand for Rs 1,20,000. Dark, proud, and already carrying stories.</p>
+          </article>
+          <article class="timeline-item reveal">
+            <time>19 Dec 2023</time>
+            <h3>CBR 250R Repsol arrives</h3>
+            <p>Bought for Rs 28,000 from pocket money. A dream that felt earned.</p>
+          </article>
+          <article class="timeline-item reveal">
+            <time>27 Jun 2025</time>
+            <h3>The last picture with her</h3>
+            <p>A final memory before the accident. She was lost, but she helped save a life.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="garage" id="garage">
+        <div class="garage-copy">
+          <p class="section-label">3D memory garage</p>
+          <h2>Three silhouettes, one road.</h2>
+          <p>
+            A small animated scene built from simple 3D shapes: scooter, roadster,
+            sport bike. Tap a name to bring each one forward.
+          </p>
+          <div class="focus-controls" aria-label="3D focus controls">
+            <button class="focus-button is-active" type="button" data-focus="all">All</button>
+            <button class="focus-button" type="button" data-focus="activa">Activa</button>
+            <button class="focus-button" type="button" data-focus="yezdi">Yezdi</button>
+            <button class="focus-button" type="button" data-focus="cbr">CBR</button>
+          </div>
+        </div>
+        <div class="garage-stage" aria-label="Animated 3D tribute scene">
+          <canvas id="garageCanvas"></canvas>
+          <p class="webgl-fallback" hidden>
+            The 3D scene could not load here, but the tribute is still ready below.
+          </p>
+        </div>
+      </section>
+
+      <section class="rides" id="rides">
+        <div class="section-heading">
+          <p class="section-label">The three</p>
+          <h2>What each one gave.</h2>
+        </div>
+
+        <article class="vehicle-card reveal">
+          <div class="vehicle-copy">
+            <p class="eyebrow">Activa / 2018 to now</p>
+            <h3>The First Teacher</h3>
+            <p>
+              The Activa is the quiet legend: errands, school runs, family work,
+              early confidence, and 41,000 km of just showing up. It is not loud.
+              It never needed to be.
+            </p>
+            <dl class="memory-list">
+              <div>
+                <dt>Role</dt>
+                <dd>First ride, daily backbone</dd>
+              </div>
+              <div>
+                <dt>Known distance</dt>
+                <dd>41,000 km and still present</dd>
+              </div>
+            </dl>
+            <ul class="spec-list" aria-label="Activa specifications">
+              <li>109.51 cc Honda Activa110 family</li>
+              <li>9.05 Nm at 5500 rpm</li>
+              <li>Automatic CVT character</li>
+              <li>5.3 L fuel tank</li>
+            </ul>
+          </div>
+          <figure class="vehicle-art">
+            <img
+              src="assets/generated/activa-dream.png"
+              alt="AI generated warm portrait of a matte black scooter with a travel bundle"
+            />
+            <figcaption>AI dream portrait inspired by the original Activa photo.</figcaption>
+          </figure>
+        </article>
+
+        <article class="vehicle-card reverse reveal">
+          <div class="vehicle-copy">
+            <p class="eyebrow">Yezdi Roadster / 18 Oct 2023</p>
+            <h3>The Night Roadster</h3>
+            <p>
+              Bought second hand for Rs 1,20,000, then turned into something personal
+              across 20,000 km. The Roadster has that old-school calm: heavy presence,
+              round headlamp, and a mood that looks best after sunset.
+            </p>
+            <dl class="memory-list">
+              <div>
+                <dt>Bought</dt>
+                <dd>18 October 2023</dd>
+              </div>
+              <div>
+                <dt>Known distance</dt>
+                <dd>20,000 km ridden by me</dd>
+              </div>
+            </dl>
+            <ul class="spec-list" aria-label="Yezdi Roadster specifications">
+              <li>334 cc liquid cooled single cylinder</li>
+              <li>21.46 kW at 7500 rpm</li>
+              <li>29.63 Nm at 6000 rpm</li>
+              <li>6-speed gearbox, 12.5 L tank</li>
+            </ul>
+          </div>
+          <figure class="vehicle-art">
+            <img
+              src="assets/generated/yezdi-dream.png"
+              alt="AI generated night portrait of a dark classic roadster motorcycle at an iron gate"
+            />
+            <figcaption>AI dream portrait shaped by the night photos.</figcaption>
+          </figure>
+        </article>
+
+        <article class="vehicle-card cbr-card reveal" id="cbr-memory">
+          <div class="vehicle-copy">
+            <p class="eyebrow">CBR 250R Repsol / 19 Dec 2023 to 27 Jun 2025</p>
+            <h3>The Guardian</h3>
+            <p>
+              The CBR was bought for only Rs 28,000, from pocket money, and somehow
+              became priceless. She was a dream bike, a waterfall-photo bike, a
+              memory bike, and in the accident, she gave one final protection.
+            </p>
+            <dl class="memory-list">
+              <div>
+                <dt>Bought</dt>
+                <dd>19 December 2023</dd>
+              </div>
+              <div>
+                <dt>Last picture</dt>
+                <dd>27 June 2025</dd>
+              </div>
+            </dl>
+            <ul class="spec-list" aria-label="CBR 250R specifications">
+              <li>249.6 cc liquid cooled single cylinder</li>
+              <li>About 26.5 PS at 8500 rpm</li>
+              <li>22.9 Nm at 7000 rpm</li>
+              <li>6-speed manual, 13 L tank</li>
+            </ul>
+          </div>
+          <figure class="vehicle-art">
+            <img
+              src="assets/generated/cbr-dream.png"
+              alt="AI generated respectful portrait of an orange white red sport bike near a mountain waterfall"
+            />
+            <figcaption>AI memorial portrait, kept whole and peaceful.</figcaption>
+          </figure>
+        </article>
+      </section>
+
+      <section class="gallery" id="gallery">
+        <div class="section-heading">
+          <p class="section-label">Original photos</p>
+          <h2>The real ones.</h2>
+          <p>
+            These are the photos that anchor the page. The AI images are only atmosphere;
+            these are the proof.
+          </p>
+        </div>
+        <div class="gallery-grid">
+          <figure class="photo-frame tall reveal">
+            <img
+              src="assets/photos/activa-web.png"
+              alt="Original photo of the black Activa parked with a bundle on the rear seat"
+            />
+            <figcaption>Activa, the dependable starter.</figcaption>
+          </figure>
+          <figure class="photo-frame wide reveal">
+            <img
+              src="assets/photos/yezdi-gate-upright.png"
+              alt="Original night photo of the Yezdi Roadster by a gate"
+            />
+            <figcaption>Yezdi Roadster, gate lights and dark paint.</figcaption>
+          </figure>
+          <figure class="photo-frame tall reveal">
+            <img
+              src="assets/photos/cbr-waterfall-web.png"
+              alt="Original photo of the CBR 250R Repsol near a waterfall"
+            />
+            <figcaption>CBR at the waterfall, the photo that already feels like a poster.</figcaption>
+          </figure>
+          <figure class="photo-frame wide reveal">
+            <img
+              src="assets/photos/yezdi-bench-upright.png"
+              alt="Original night photo of the Yezdi Roadster near a bench"
+            />
+            <figcaption>Roadster, helmet, bench, night.</figcaption>
+          </figure>
+          <figure class="photo-frame tall reveal">
+            <img
+              src="assets/photos/cbr-last-web.png"
+              alt="Original last memory photo of the CBR 250R Repsol at Cafe Wild Flower in Mussoorie"
+            />
+            <figcaption>Last picture memory with her.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="memorial">
+        <div class="memorial-image reveal">
+          <img
+            src="assets/photos/cbr-last-memorial.png"
+            alt="The CBR 250R Repsol in the last memory photo"
+          />
+        </div>
+        <div class="memorial-copy reveal">
+          <p class="section-label">My quiet thanks</p>
+          <h2>For the CBR that became a shield.</h2>
+          <p>
+            Some vehicles leave by being sold. Some leave by being retired. Mine left
+            after doing something no machine should ever have to do: taking the hit,
+            holding the line, and helping me come back alive.
+          </p>
+          <p>
+            She deserves to be remembered whole, bright, orange, stubborn, beautiful,
+            and loved.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Built as a personal tribute with original photos, AI-generated scene art,
+        and a code-built 3D garage.
+      </p>
+      <p class="source-note">
+        Spec references:
+        <a href="https://www.honda2wheelersindia.com/scooter/activa110">Honda Activa110</a>,
+        <a href="https://www.jawayezdimotorcycles.com/products/new-yezdi-roadster">Yezdi Roadster</a>,
+        <a href="https://www.bikedekho.com/honda/cbr-250-r-2011-2017/specifications">CBR 250R</a>.
+        Exact values can vary by model year and variant.
+      </p>
+    </footer>
+
+    <script type="module" src="script.js"></script>
+  </body>
+</html>
