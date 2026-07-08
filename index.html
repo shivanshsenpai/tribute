@@ -116,9 +116,9 @@
           <div class="activity-road" aria-hidden="true">
             <div class="route-ring"></div>
             <div class="route-line"></div>
-            <span class="mini-ride mini-activa"></span>
-            <span class="mini-ride mini-yezdi"></span>
-            <span class="mini-ride mini-cbr"></span>
+            <button class="mini-ride mini-activa" type="button" data-road-activity="activa" aria-label="Show Activa daily run"></button>
+            <button class="mini-ride mini-yezdi" type="button" data-road-activity="yezdi" aria-label="Show Yezdi night loop"></button>
+            <button class="mini-ride mini-cbr" type="button" data-road-activity="cbr" aria-label="Show CBR hill memory"></button>
             <span class="route-pin pin-home">Home</span>
             <span class="route-pin pin-night">Night</span>
             <span class="route-pin pin-hills">Hills</span>
@@ -206,6 +206,10 @@
               <li>Automatic CVT character</li>
               <li>5.3 L fuel tank</li>
             </ul>
+            <div class="memory-actions">
+              <button class="memory-button" type="button" data-memory="activa">Light this memory</button>
+              <span class="memory-status" aria-live="polite">Waiting quietly.</span>
+            </div>
           </div>
           <figure class="vehicle-art">
             <img
@@ -241,6 +245,10 @@
               <li>29.63 Nm at 6000 rpm</li>
               <li>6-speed gearbox, 12.5 L tank</li>
             </ul>
+            <div class="memory-actions">
+              <button class="memory-button" type="button" data-memory="yezdi">Light this memory</button>
+              <span class="memory-status" aria-live="polite">Waiting quietly.</span>
+            </div>
           </div>
           <figure class="vehicle-art">
             <img
@@ -276,6 +284,10 @@
               <li>22.9 Nm at 7000 rpm</li>
               <li>6-speed manual, 13 L tank</li>
             </ul>
+            <div class="memory-actions">
+              <button class="memory-button" type="button" data-memory="cbr">Light this memory</button>
+              <span class="memory-status" aria-live="polite">Waiting quietly.</span>
+            </div>
           </div>
           <figure class="vehicle-art">
             <img
@@ -303,6 +315,13 @@
               alt="Original photo of the black Activa parked with a bundle on the rear seat"
             />
             <figcaption>Activa, the dependable starter.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/photos/activa-web.png"
+              data-photo-caption="Activa, the dependable starter."
+              aria-label="Open Activa photo"
+            ></button>
           </figure>
           <figure class="photo-frame wide reveal">
             <img
@@ -310,6 +329,13 @@
               alt="Original night photo of the Yezdi Roadster by a gate"
             />
             <figcaption>Yezdi Roadster, gate lights and dark paint.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/photos/yezdi-gate-upright.png"
+              data-photo-caption="Yezdi Roadster, gate lights and dark paint."
+              aria-label="Open Yezdi Roadster gate photo"
+            ></button>
           </figure>
           <figure class="photo-frame tall reveal">
             <img
@@ -317,6 +343,13 @@
               alt="Original photo of the CBR 250R Repsol near a waterfall"
             />
             <figcaption>CBR at the waterfall, the photo that already feels like a poster.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/photos/cbr-waterfall-web.png"
+              data-photo-caption="CBR at the waterfall, the photo that already feels like a poster."
+              aria-label="Open CBR waterfall photo"
+            ></button>
           </figure>
           <figure class="photo-frame wide reveal">
             <img
@@ -324,6 +357,13 @@
               alt="Original night photo of the Yezdi Roadster near a bench"
             />
             <figcaption>Roadster, helmet, bench, night.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/photos/yezdi-bench-upright.png"
+              data-photo-caption="Roadster, helmet, bench, night."
+              aria-label="Open Yezdi Roadster bench photo"
+            ></button>
           </figure>
           <figure class="photo-frame tall reveal">
             <img
@@ -331,6 +371,13 @@
               alt="Original last memory photo of the CBR 250R Repsol at Cafe Wild Flower in Mussoorie"
             />
             <figcaption>Last picture memory with her.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/photos/cbr-last-web.png"
+              data-photo-caption="Last picture memory with her."
+              aria-label="Open CBR last picture memory"
+            ></button>
           </figure>
         </div>
       </section>
@@ -357,6 +404,16 @@
         </div>
       </section>
     </main>
+
+    <dialog class="lightbox" id="photoLightbox" aria-label="Original photo viewer">
+      <button class="lightbox-close" type="button" data-lightbox-close aria-label="Close photo viewer">Close</button>
+      <button class="lightbox-nav lightbox-prev" type="button" data-lightbox-prev aria-label="Previous photo">Prev</button>
+      <figure class="lightbox-frame">
+        <img src="assets/photos/activa-web.png" alt="" id="lightboxImage" />
+        <figcaption id="lightboxCaption">Activa, the dependable starter.</figcaption>
+      </figure>
+      <button class="lightbox-nav lightbox-next" type="button" data-lightbox-next aria-label="Next photo">Next</button>
+    </dialog>
 
     <footer class="footer">
       <p>

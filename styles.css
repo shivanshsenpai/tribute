@@ -401,7 +401,10 @@ a {
   position: absolute;
   width: 86px;
   height: 34px;
+  border: 0;
   border-radius: 999px 999px 8px 8px;
+  padding: 0;
+  cursor: pointer;
   transform-origin: center;
   filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.38));
 }
@@ -453,6 +456,12 @@ a {
 .activity-board[data-active-ride="cbr"] .mini-cbr,
 .activity-board[data-active-ride="all"] .mini-ride {
   outline: 3px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 8px;
+}
+
+.mini-ride:hover,
+.mini-ride:focus-visible {
+  outline: 3px solid #fff;
   outline-offset: 8px;
 }
 
@@ -649,6 +658,17 @@ a {
   border-radius: 8px;
   background: var(--paper-strong);
   box-shadow: var(--shadow);
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms ease;
+}
+
+.vehicle-card.is-lit {
+  border-color: rgba(239, 107, 27, 0.75);
+  box-shadow:
+    0 22px 70px rgba(16, 17, 15, 0.18),
+    0 0 0 4px rgba(239, 107, 27, 0.12);
 }
 
 .vehicle-card.reverse {
@@ -719,6 +739,38 @@ a {
   background: rgba(248, 246, 240, 0.8);
 }
 
+.memory-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.memory-button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.62rem 0.86rem;
+  background: var(--road);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.memory-button:hover,
+.memory-button:focus-visible,
+.vehicle-card.is-lit .memory-button {
+  border-color: transparent;
+  background: var(--orange);
+}
+
+.memory-status {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
 .vehicle-art {
   margin: 0;
   overflow: hidden;
@@ -765,6 +817,20 @@ a {
   box-shadow: var(--shadow);
 }
 
+.photo-open {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.photo-open:focus-visible {
+  outline: 3px solid var(--orange);
+  outline-offset: -6px;
+}
+
 .photo-frame.tall {
   grid-column: span 5;
   aspect-ratio: 4 / 5;
@@ -802,11 +868,93 @@ a {
 
 .photo-frame figcaption {
   position: absolute;
+  z-index: 2;
   left: 0;
   right: 0;
   bottom: 0;
   background: linear-gradient(0deg, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0));
   padding-top: 3rem;
+  pointer-events: none;
+}
+
+.lightbox {
+  width: min(1100px, calc(100% - 1.5rem));
+  max-height: min(92vh, 920px);
+  border: 1px solid var(--light-line);
+  border-radius: 8px;
+  padding: 0;
+  overflow: visible;
+  background: transparent;
+  color: #fff;
+}
+
+.lightbox::backdrop {
+  background: rgba(0, 0, 0, 0.84);
+  backdrop-filter: blur(10px);
+}
+
+.lightbox-frame {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #050505;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.48);
+}
+
+.lightbox-frame img {
+  width: 100%;
+  max-height: 78vh;
+  object-fit: contain;
+  background: #050505;
+}
+
+.lightbox-frame figcaption {
+  padding: 0.9rem 1rem;
+  color: rgba(255, 255, 255, 0.86);
+  background: #080808;
+}
+
+.lightbox-close,
+.lightbox-nav {
+  position: absolute;
+  z-index: 2;
+  min-height: 42px;
+  border: 1px solid var(--light-line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  backdrop-filter: blur(14px);
+}
+
+.lightbox-close {
+  right: 0;
+  top: -3.4rem;
+  padding: 0.62rem 0.85rem;
+}
+
+.lightbox-nav {
+  top: 50%;
+  width: 58px;
+  transform: translateY(-50%);
+}
+
+.lightbox-prev {
+  left: -4.3rem;
+}
+
+.lightbox-next {
+  right: -4.3rem;
+}
+
+.lightbox-close:hover,
+.lightbox-close:focus-visible,
+.lightbox-nav:hover,
+.lightbox-nav:focus-visible {
+  background: var(--orange);
+  border-color: transparent;
 }
 
 .memorial {
@@ -935,6 +1083,14 @@ a {
   .memorial-copy {
     padding: 4rem 1.25rem;
   }
+
+  .lightbox-prev {
+    left: 0.5rem;
+  }
+
+  .lightbox-next {
+    right: 0.5rem;
+  }
 }
 
 @media (max-width: 720px) {
@@ -1031,6 +1187,20 @@ a {
   .memorial-image,
   .memorial-image img {
     min-height: 430px;
+  }
+
+  .lightbox {
+    width: calc(100% - 1rem);
+  }
+
+  .lightbox-close {
+    top: -3.2rem;
+  }
+
+  .lightbox-nav {
+    top: auto;
+    bottom: -3.25rem;
+    transform: none;
   }
 }
 

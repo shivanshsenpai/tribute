@@ -6,6 +6,8 @@ setupReveal();
 setupCounters();
 setupImageTilt();
 setupActivityBoard();
+setupMemoryButtons();
+setupLightbox();
 loadGarage();
 
 function setupReveal() {
@@ -133,20 +135,99 @@ function setupActivityBoard() {
   const distance = document.querySelector("#activityDistance");
   const mood = document.querySelector("#activityMood");
 
-  document.querySelectorAll("[data-activity]").forEach((button) => {
-    button.addEventListener("click", () => {
-      const active = copy[button.dataset.activity] || copy.activa;
-      board.dataset.activeRide = button.dataset.activity;
-      document.querySelectorAll("[data-activity]").forEach((item) => {
-        item.classList.toggle("is-active", item === button);
-      });
-
-      label.textContent = active.label;
-      title.textContent = active.title;
-      text.textContent = active.text;
-      distance.textContent = active.distance;
-      mood.textContent = active.mood;
+  const setActivity = (activity) => {
+    const active = copy[activity] || copy.activa;
+    board.dataset.activeRide = activity;
+    document.querySelectorAll("[data-activity]").forEach((item) => {
+      item.classList.toggle("is-active", item.dataset.activity === activity);
     });
+    document.querySelectorAll("[data-road-activity]").forEach((item) => {
+      item.setAttribute("aria-pressed", String(item.dataset.roadActivity === activity));
+    });
+
+    label.textContent = active.label;
+    title.textContent = active.title;
+    text.textContent = active.text;
+    distance.textContent = active.distance;
+    mood.textContent = active.mood;
+  };
+
+  document.querySelectorAll("[data-activity]").forEach((button) => {
+    button.addEventListener("click", () => setActivity(button.dataset.activity));
+  });
+
+  document.querySelectorAll("[data-road-activity]").forEach((button) => {
+    button.addEventListener("click", () => setActivity(button.dataset.roadActivity));
+  });
+}
+
+function setupMemoryButtons() {
+  const storageKey = "tribute-lit-memories";
+  const buttons = [...document.querySelectorAll("[data-memory]")];
+  let lit = new Set();
+
+  try {
+    lit = new Set(JSON.parse(localStorage.getItem(storageKey) || "[]"));
+  } catch {
+    lit = new Set();
+  }
+
+  const render = (button) => {
+    const card = button.closest(".vehicle-card");
+    const status = card?.querySelector(".memory-status");
+    const isLit = lit.has(button.dataset.memory);
+    card?.classList.toggle("is-lit", isLit);
+    button.textContent = isLit ? "Memory is lit" : "Light this memory";
+    button.setAttribute("aria-pressed", String(isLit));
+    if (status) status.textContent = isLit ? "Kept glowing here." : "Waiting quietly.";
+  };
+
+  buttons.forEach((button) => {
+    render(button);
+    button.addEventListener("click", () => {
+      if (lit.has(button.dataset.memory)) lit.delete(button.dataset.memory);
+      else lit.add(button.dataset.memory);
+      localStorage.setItem(storageKey, JSON.stringify([...lit]));
+      render(button);
+    });
+  });
+}
+
+function setupLightbox() {
+  const dialog = document.querySelector("#photoLightbox");
+  const image = document.querySelector("#lightboxImage");
+  const caption = document.querySelector("#lightboxCaption");
+  const openers = [...document.querySelectorAll(".photo-open")];
+  if (!dialog || !image || !caption || openers.length === 0) return;
+
+  let activeIndex = 0;
+
+  const showPhoto = (index) => {
+    activeIndex = (index + openers.length) % openers.length;
+    const opener = openers[activeIndex];
+    image.src = opener.dataset.photoSrc;
+    image.alt = opener.getAttribute("aria-label") || "";
+    caption.textContent = opener.dataset.photoCaption || "";
+  };
+
+  openers.forEach((opener, index) => {
+    opener.addEventListener("click", () => {
+      showPhoto(index);
+      dialog.showModal();
+    });
+  });
+
+  document.querySelector("[data-lightbox-close]")?.addEventListener("click", () => dialog.close());
+  document.querySelector("[data-lightbox-prev]")?.addEventListener("click", () => showPhoto(activeIndex - 1));
+  document.querySelector("[data-lightbox-next]")?.addEventListener("click", () => showPhoto(activeIndex + 1));
+
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  dialog.addEventListener("keydown", (event) => {
+    if (event.key === "ArrowLeft") showPhoto(activeIndex - 1);
+    if (event.key === "ArrowRight") showPhoto(activeIndex + 1);
   });
 }
 
