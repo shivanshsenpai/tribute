@@ -212,6 +212,7 @@ a {
 
 .intro,
 .timeline,
+.ride-activities,
 .rides,
 .gallery {
   width: min(1180px, calc(100% - 2.5rem));
@@ -331,6 +332,222 @@ a {
   color: var(--muted);
 }
 
+.activity-board {
+  display: grid;
+  grid-template-columns: 1fr 0.92fr;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--line);
+  box-shadow: var(--shadow);
+}
+
+.activity-road {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 24% 22%, rgba(216, 166, 77, 0.2), transparent 26%),
+    radial-gradient(circle at 78% 74%, rgba(239, 107, 27, 0.18), transparent 28%),
+    linear-gradient(135deg, #151711, #25251d);
+}
+
+.activity-road::before {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  animation: routeSpin 24s linear infinite;
+}
+
+.activity-road::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: 0.14rem;
+  height: 120%;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(216, 166, 77, 0.9) 0 1.1rem,
+    transparent 1.1rem 2rem
+  );
+  transform: rotate(32deg);
+  opacity: 0.65;
+  animation: roadFlow 900ms linear infinite;
+}
+
+.route-ring {
+  position: absolute;
+  inset: 20%;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.38);
+}
+
+.route-line {
+  position: absolute;
+  left: 16%;
+  right: 16%;
+  top: 50%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(239, 107, 27, 0.75), transparent);
+  transform: rotate(-16deg);
+}
+
+.mini-ride {
+  position: absolute;
+  width: 86px;
+  height: 34px;
+  border-radius: 999px 999px 8px 8px;
+  transform-origin: center;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.38));
+}
+
+.mini-ride::before,
+.mini-ride::after {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  width: 25px;
+  height: 25px;
+  border: 5px solid #090907;
+  border-radius: 999px;
+  background: radial-gradient(circle, var(--gold) 0 25%, #1a1711 26% 100%);
+  animation: wheelSpin 650ms linear infinite;
+}
+
+.mini-ride::before {
+  left: 9px;
+}
+
+.mini-ride::after {
+  right: 9px;
+}
+
+.mini-activa {
+  left: 13%;
+  top: 58%;
+  background: linear-gradient(90deg, #151515, #34312a);
+  animation: miniFloat 3.8s ease-in-out infinite;
+}
+
+.mini-yezdi {
+  left: 44%;
+  top: 36%;
+  background: linear-gradient(90deg, var(--green), #121611);
+  animation: miniFloat 4.4s ease-in-out 400ms infinite;
+}
+
+.mini-cbr {
+  right: 12%;
+  top: 62%;
+  background: linear-gradient(90deg, var(--orange), var(--red), #f2eee4);
+  animation: miniFloat 3.2s ease-in-out 700ms infinite;
+}
+
+.activity-board[data-active-ride="activa"] .mini-activa,
+.activity-board[data-active-ride="yezdi"] .mini-yezdi,
+.activity-board[data-active-ride="cbr"] .mini-cbr,
+.activity-board[data-active-ride="all"] .mini-ride {
+  outline: 3px solid rgba(255, 255, 255, 0.72);
+  outline-offset: 8px;
+}
+
+.route-pin {
+  position: absolute;
+  z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  padding: 0.42rem 0.6rem;
+  background: rgba(0, 0, 0, 0.36);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 900;
+  backdrop-filter: blur(12px);
+}
+
+.pin-home {
+  left: 10%;
+  top: 14%;
+}
+
+.pin-night {
+  right: 14%;
+  top: 18%;
+}
+
+.pin-hills {
+  left: 46%;
+  bottom: 12%;
+}
+
+.activity-panel {
+  display: grid;
+  align-content: center;
+  gap: 1.4rem;
+  padding: clamp(1.2rem, 3vw, 2.4rem);
+  background: var(--paper-strong);
+}
+
+.activity-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.activity-tab,
+.garage-action {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.62rem 0.82rem;
+  background: rgba(248, 246, 240, 0.82);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.activity-tab.is-active,
+.activity-tab:hover,
+.activity-tab:focus-visible {
+  background: var(--road);
+  color: #fff;
+}
+
+.activity-story h3 {
+  margin: 0;
+  font-size: 2.15rem;
+  line-height: 1.08;
+}
+
+.activity-story p:not(.section-label) {
+  margin: 1rem 0 0;
+  color: var(--muted);
+}
+
+.activity-meters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+  margin-top: 1.4rem;
+}
+
+.activity-meters span {
+  border-top: 2px solid var(--line);
+  padding-top: 0.75rem;
+  color: var(--muted);
+}
+
+.activity-meters strong {
+  display: block;
+  color: var(--ink);
+  font-size: 1.15rem;
+}
+
 .garage {
   min-height: 740px;
   display: grid;
@@ -374,6 +591,29 @@ a {
 .focus-button:focus-visible {
   background: #fff;
   color: var(--road);
+}
+
+.garage-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.8rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--light-line);
+}
+
+.garage-action {
+  border-color: var(--light-line);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.garage-action.is-active,
+.garage-action:hover,
+.garage-action:focus-visible {
+  background: var(--orange);
+  border-color: transparent;
+  color: #fff;
 }
 
 .garage-stage {
@@ -650,6 +890,7 @@ a {
 @media (max-width: 980px) {
   .intro,
   .garage,
+  .activity-board,
   .memorial,
   .vehicle-card,
   .vehicle-card.reverse {
@@ -676,6 +917,10 @@ a {
   .garage,
   .garage-stage {
     min-height: auto;
+  }
+
+  .activity-road {
+    min-height: 420px;
   }
 
   .garage-stage {
@@ -712,6 +957,7 @@ a {
 
   .intro,
   .timeline,
+  .ride-activities,
   .rides,
   .gallery {
     width: min(100% - 1.25rem, 1180px);
@@ -727,7 +973,8 @@ a {
 
   .stats,
   .timeline-track,
-  .memory-list {
+  .memory-list,
+  .activity-meters {
     grid-template-columns: 1fr;
   }
 
@@ -737,6 +984,14 @@ a {
 
   .garage-copy {
     padding: 4rem 1.25rem 2rem;
+  }
+
+  .activity-road {
+    min-height: 360px;
+  }
+
+  .activity-story h3 {
+    font-size: 1.75rem;
   }
 
   .garage-stage {
@@ -776,6 +1031,34 @@ a {
   .memorial-image,
   .memorial-image img {
     min-height: 430px;
+  }
+}
+
+@keyframes routeSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes roadFlow {
+  to {
+    background-position-y: 2rem;
+  }
+}
+
+@keyframes miniFloat {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(2deg);
+  }
+}
+
+@keyframes wheelSpin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

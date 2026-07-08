@@ -23,6 +23,7 @@
         <a class="brand" href="#home">Three Rides</a>
         <div class="nav-links">
           <a href="#timeline">Timeline</a>
+          <a href="#activities">Activities</a>
           <a href="#garage">3D Garage</a>
           <a href="#rides">Rides</a>
           <a href="#gallery">Gallery</a>
@@ -102,6 +103,49 @@
         </div>
       </section>
 
+      <section class="ride-activities" id="activities">
+        <div class="section-heading">
+          <p class="section-label">Ride activities</p>
+          <h2>Little scenes from my road life.</h2>
+          <p>
+            Pick a memory mode and the mini road changes with it. A small moving
+            dashboard for the jobs, night loops, hill stops, and quiet thankfulness.
+          </p>
+        </div>
+        <div class="activity-board reveal" data-active-ride="activa">
+          <div class="activity-road" aria-hidden="true">
+            <div class="route-ring"></div>
+            <div class="route-line"></div>
+            <span class="mini-ride mini-activa"></span>
+            <span class="mini-ride mini-yezdi"></span>
+            <span class="mini-ride mini-cbr"></span>
+            <span class="route-pin pin-home">Home</span>
+            <span class="route-pin pin-night">Night</span>
+            <span class="route-pin pin-hills">Hills</span>
+          </div>
+          <div class="activity-panel">
+            <div class="activity-tabs" aria-label="Ride activity selector">
+              <button class="activity-tab is-active" type="button" data-activity="activa">Daily run</button>
+              <button class="activity-tab" type="button" data-activity="yezdi">Night loop</button>
+              <button class="activity-tab" type="button" data-activity="cbr">Hill memory</button>
+              <button class="activity-tab" type="button" data-activity="all">Garage ritual</button>
+            </div>
+            <article class="activity-story" aria-live="polite">
+              <p class="section-label" id="activityLabel">Activa mode</p>
+              <h3 id="activityTitle">Daily run, no drama.</h3>
+              <p id="activityText">
+                The Activa activity is simple: start, carry, wait, return. It is the
+                everyday machine that made riding feel normal and mine.
+              </p>
+              <div class="activity-meters">
+                <span><strong id="activityDistance">41,000 km</strong> remembered</span>
+                <span><strong id="activityMood">Steady</strong> mood</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
       <section class="garage" id="garage">
         <div class="garage-copy">
           <p class="section-label">3D memory garage</p>
@@ -115,6 +159,12 @@
             <button class="focus-button" type="button" data-focus="activa">Activa</button>
             <button class="focus-button" type="button" data-focus="yezdi">Yezdi</button>
             <button class="focus-button" type="button" data-focus="cbr">CBR</button>
+          </div>
+          <div class="garage-actions" aria-label="3D animation controls">
+            <button class="garage-action is-active" type="button" data-garage-mode="idle">Idle</button>
+            <button class="garage-action" type="button" data-garage-mode="cruise">Cruise</button>
+            <button class="garage-action" type="button" data-garage-mode="parade">Parade</button>
+            <button class="garage-action" type="button" data-garage-lights>Lights</button>
           </div>
         </div>
         <div class="garage-stage" aria-label="Animated 3D tribute scene">

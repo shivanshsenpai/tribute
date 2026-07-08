@@ -5,6 +5,7 @@ const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matc
 setupReveal();
 setupCounters();
 setupImageTilt();
+setupActivityBoard();
 loadGarage();
 
 function setupReveal() {
@@ -87,6 +88,68 @@ function setupImageTilt() {
   });
 }
 
+function setupActivityBoard() {
+  const board = document.querySelector(".activity-board");
+  if (!board) return;
+
+  const copy = {
+    activa: {
+      label: "Activa mode",
+      title: "Daily run, no drama.",
+      text:
+        "The Activa activity is simple: start, carry, wait, return. It is the everyday machine that made riding feel normal and mine.",
+      distance: "41,000 km",
+      mood: "Steady",
+    },
+    yezdi: {
+      label: "Yezdi mode",
+      title: "Night loop, slow glow.",
+      text:
+        "The Roadster activity is for quiet roads, gate lights, dark paint, and that heavy old-school feeling after sunset.",
+      distance: "20,000 km",
+      mood: "Cinematic",
+    },
+    cbr: {
+      label: "CBR mode",
+      title: "Hill memory, full heart.",
+      text:
+        "The CBR activity is the waterfall stop, the orange fairing, the photo that stayed, and the gratitude I still carry.",
+      distance: "Priceless",
+      mood: "Grateful",
+    },
+    all: {
+      label: "Garage mode",
+      title: "All three in one ritual.",
+      text:
+        "The garage activity keeps all three moving together: daily courage, night presence, and the bright sport-bike memory.",
+      distance: "3 rides",
+      mood: "Loved",
+    },
+  };
+
+  const label = document.querySelector("#activityLabel");
+  const title = document.querySelector("#activityTitle");
+  const text = document.querySelector("#activityText");
+  const distance = document.querySelector("#activityDistance");
+  const mood = document.querySelector("#activityMood");
+
+  document.querySelectorAll("[data-activity]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const active = copy[button.dataset.activity] || copy.activa;
+      board.dataset.activeRide = button.dataset.activity;
+      document.querySelectorAll("[data-activity]").forEach((item) => {
+        item.classList.toggle("is-active", item === button);
+      });
+
+      label.textContent = active.label;
+      title.textContent = active.title;
+      text.textContent = active.text;
+      distance.textContent = active.distance;
+      mood.textContent = active.mood;
+    });
+  });
+}
+
 async function loadGarage() {
   const canvas = document.querySelector("#garageCanvas");
   const fallback = document.querySelector(".webgl-fallback");
@@ -123,7 +186,7 @@ function initGarage(THREE, canvas) {
   scene.add(garage);
 
   const materials = createMaterials(THREE);
-  createWorld(THREE, scene, materials);
+  const world = createWorld(THREE, scene, materials);
 
   const vehicles = {
     activa: createScooter(THREE, materials),
@@ -145,6 +208,8 @@ function initGarage(THREE, canvas) {
   };
 
   let activeTarget = focusTargets.all;
+  let garageMode = "idle";
+  let lightsOn = false;
   let pointerX = 0;
 
   document.querySelectorAll("[data-focus]").forEach((button) => {
@@ -154,6 +219,20 @@ function initGarage(THREE, canvas) {
         item.classList.toggle("is-active", item === button);
       });
     });
+  });
+
+  document.querySelectorAll("[data-garage-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      garageMode = button.dataset.garageMode || "idle";
+      document.querySelectorAll("[data-garage-mode]").forEach((item) => {
+        item.classList.toggle("is-active", item === button);
+      });
+    });
+  });
+
+  document.querySelector("[data-garage-lights]")?.addEventListener("click", (event) => {
+    lightsOn = !lightsOn;
+    event.currentTarget.classList.toggle("is-active", lightsOn);
   });
 
   stage.addEventListener("pointermove", (event) => {
@@ -186,12 +265,25 @@ function initGarage(THREE, canvas) {
     camera.position.z += (activeTarget.z - camera.position.z) * 0.055;
     lookAt.x += (activeTarget.lookX - lookAt.x) * 0.06;
 
-    garage.rotation.y = Math.sin(elapsed * 0.35) * 0.06 * motion;
+    const isCruising = garageMode === "cruise";
+    const isParade = garageMode === "parade";
+    const wheelSpeed = isCruising ? 0.09 : isParade ? 0.04 : 0.015;
+    const dashSpeed = isCruising ? 0.06 : isParade ? 0.022 : 0;
+    garage.rotation.y = Math.sin(elapsed * 0.35) * (isParade ? 0.13 : 0.06) * motion;
+
+    world.roadDashes.forEach((dash) => {
+      dash.position.z += dashSpeed * motion;
+      if (dash.position.z > 5.2) dash.position.z = -5.4;
+    });
 
     Object.values(vehicles).forEach((vehicle, index) => {
-      vehicle.position.y = Math.sin(elapsed * 1.2 + index) * 0.025 * motion;
+      vehicle.position.y = Math.sin(elapsed * (isCruising ? 2.2 : 1.2) + index) * (isCruising ? 0.045 : 0.025) * motion;
+      vehicle.rotation.z = Math.sin(elapsed * 1.3 + index) * (isParade ? 0.018 : 0.006) * motion;
       vehicle.userData.wheels.forEach((wheel) => {
-        wheel.rotation.z -= 0.015 * motion;
+        wheel.rotation.z -= wheelSpeed * motion;
+      });
+      vehicle.userData.lights.forEach((light) => {
+        light.intensity = lightsOn || isCruising ? 1.45 : 0.18;
       });
     });
 
@@ -234,6 +326,7 @@ function createMaterials(THREE) {
 }
 
 function createWorld(THREE, scene, materials) {
+  const roadDashes = [];
   const ambient = new THREE.HemisphereLight(0xfff3d0, 0x1b241d, 1.35);
   scene.add(ambient);
 
@@ -256,6 +349,7 @@ function createWorld(THREE, scene, materials) {
     dash.rotation.x = -Math.PI / 2;
     dash.position.set(0, 0.005, i * 1.65 - 0.3);
     scene.add(dash);
+    roadDashes.push(dash);
   }
 
   const backGlow = new THREE.Mesh(
@@ -264,6 +358,8 @@ function createWorld(THREE, scene, materials) {
   );
   backGlow.position.set(0, 2.2, -4.5);
   scene.add(backGlow);
+
+  return { roadDashes };
 }
 
 function createWheel(THREE, materials, radius = 0.36) {
@@ -328,9 +424,18 @@ function addTube(THREE, group, from, to, radius, material) {
   return mesh;
 }
 
+function addHeadlight(THREE, group, position, color = 0xfff0c2) {
+  const light = new THREE.PointLight(color, 0.18, 2.5);
+  light.position.set(...position);
+  group.add(light);
+  group.userData.lights.push(light);
+  return light;
+}
+
 function createScooter(THREE, materials) {
   const group = new THREE.Group();
   group.userData.wheels = [];
+  group.userData.lights = [];
 
   const rear = createWheel(THREE, materials, 0.36);
   const front = createWheel(THREE, materials, 0.36);
@@ -353,6 +458,7 @@ function createScooter(THREE, materials) {
   addTube(THREE, group, [-0.72, 0.72, 0.26], [0.47, 1.18, 0.26], 0.025, materials.chrome);
   addTube(THREE, group, [-0.72, 0.72, -0.26], [0.47, 1.18, -0.26], 0.025, materials.chrome);
   addSphere(THREE, group, [0.18, 0.12, 0.07], [0.63, 1.25, 0.23], materials.white);
+  addHeadlight(THREE, group, [0.75, 1.24, 0.32]);
   addSphere(THREE, group, [0.06, 0.06, 0.05], [0.52, 1.19, 0.26], materials.amber);
   addSphere(THREE, group, [0.06, 0.06, 0.05], [0.52, 1.19, -0.26], materials.amber);
   addSphere(THREE, group, [0.07, 0.05, 0.05], [-0.92, 1.03, 0], materials.tail);
@@ -365,6 +471,7 @@ function createScooter(THREE, materials) {
 function createRoadster(THREE, materials) {
   const group = new THREE.Group();
   group.userData.wheels = [];
+  group.userData.lights = [];
 
   const rear = createWheel(THREE, materials, 0.42);
   const front = createWheel(THREE, materials, 0.42);
@@ -392,6 +499,7 @@ function createRoadster(THREE, materials) {
   addTube(THREE, group, [0.72, 1.42, 0], [1.15, 1.42, 0], 0.035, materials.rubber);
   addSphere(THREE, group, [0.18, 0.18, 0.1], [0.98, 1.18, 0.2], materials.gold);
   addSphere(THREE, group, [0.16, 0.16, 0.08], [1.08, 1.22, 0], materials.white);
+  addHeadlight(THREE, group, [1.12, 1.22, 0.22]);
   addSphere(THREE, group, [0.06, 0.06, 0.04], [0.88, 1.17, 0.31], materials.amber);
   addSphere(THREE, group, [0.06, 0.06, 0.04], [0.88, 1.17, -0.31], materials.amber);
   addTube(THREE, group, [-0.96, 0.75, 0.22], [-0.72, 1.1, 0.22], 0.035, materials.chrome);
@@ -409,6 +517,7 @@ function createRoadster(THREE, materials) {
 function createSportBike(THREE, materials) {
   const group = new THREE.Group();
   group.userData.wheels = [];
+  group.userData.lights = [];
 
   const rear = createWheel(THREE, materials, 0.4);
   const front = createWheel(THREE, materials, 0.4);
@@ -431,6 +540,8 @@ function createSportBike(THREE, materials) {
   addBox(THREE, group, [0.42, 0.22, 0.36], [0.82, 1.38, 0], materials.glass, [0, 0, -0.28]);
   addSphere(THREE, group, [0.2, 0.13, 0.08], [0.92, 1.1, 0.24], materials.white);
   addSphere(THREE, group, [0.13, 0.09, 0.055], [0.93, 1.07, -0.24], materials.white);
+  addHeadlight(THREE, group, [1.0, 1.12, 0.26]);
+  addHeadlight(THREE, group, [1.0, 1.1, -0.26]);
   addSphere(THREE, group, [0.055, 0.055, 0.045], [0.8, 1.02, 0.33], materials.amber);
   addSphere(THREE, group, [0.055, 0.055, 0.045], [0.8, 1.02, -0.33], materials.amber);
   addTube(THREE, group, [0.72, 0.74, 0], [1.02, 1.37, 0], 0.035, materials.chrome);
