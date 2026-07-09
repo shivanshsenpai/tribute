@@ -24,6 +24,7 @@
         <div class="nav-links">
           <a href="#timeline">Timeline</a>
           <a href="#activities">Activities</a>
+          <a href="#mountain-game">Game</a>
           <a href="#garage">3D Garage</a>
           <a href="#rides">Rides</a>
           <a href="#gallery">Gallery</a>
@@ -143,6 +144,73 @@
               </div>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section class="mountain-game" id="mountain-game">
+        <div class="section-heading">
+          <p class="section-label">3D mountain ride</p>
+          <h2>A small hilly road inside the page.</h2>
+          <p>
+            Pick a ride and cruise a little 3D mountain road. Lean through the
+            bends, collect memory lights, dodge loose stones, and keep climbing.
+          </p>
+        </div>
+
+        <div class="game-shell reveal">
+          <div class="game-stage">
+            <canvas
+              id="mountainGameCanvas"
+              width="960"
+              height="520"
+              tabindex="0"
+              aria-label="Playable 3D mountain riding game"
+            ></canvas>
+            <div class="game-badge" id="gameStateBadge" aria-live="polite">
+              Loading the hill road
+            </div>
+          </div>
+
+          <aside class="game-panel" aria-label="3D mountain ride controls">
+            <div class="game-score-grid">
+              <span>
+                <strong id="gameDistance">0.0 km</strong>
+                distance
+              </span>
+              <span>
+                <strong id="gameLights">0</strong>
+                lights
+              </span>
+              <span>
+                <strong id="gameHearts">3</strong>
+                hearts
+              </span>
+              <span>
+                <strong id="gameBest">0.0 km</strong>
+                best
+              </span>
+            </div>
+
+            <div class="game-ride-picker" aria-label="3D game ride selector">
+              <button class="game-ride is-active" type="button" data-game-ride="activa">Activa</button>
+              <button class="game-ride" type="button" data-game-ride="yezdi">Yezdi</button>
+              <button class="game-ride" type="button" data-game-ride="cbr">CBR</button>
+            </div>
+
+            <div class="game-actions">
+              <button class="game-action primary" type="button" data-game-start>Start ride</button>
+              <button class="game-action" type="button" data-game-restart>Restart</button>
+            </div>
+
+            <div class="game-controls" aria-label="3D game touch controls">
+              <button type="button" data-game-control="left">Lean left</button>
+              <button type="button" data-game-control="jump">Hop</button>
+              <button type="button" data-game-control="right">Lean right</button>
+              <button type="button" data-game-control="gas">Gas</button>
+            </div>
+
+            <p class="game-help">Keyboard: arrows to lean, Space to hop, Shift for gas. Click the road to begin.</p>
+          </aside>
         </div>
       </section>
 
