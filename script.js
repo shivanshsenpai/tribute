@@ -202,10 +202,10 @@ function initMountainGame(THREE, canvas) {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setClearColor(0x202c31, 1);
+  renderer.setClearColor(0xa9b9aa, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0x6f806f, 42, 128);
+  scene.fog = new THREE.Fog(0xa5b39f, 46, 140);
 
   const camera = new THREE.PerspectiveCamera(54, 1, 0.1, 260);
   camera.position.set(0, 5.2, 12);
@@ -222,8 +222,17 @@ function initMountainGame(THREE, canvas) {
   scene.add(rim);
 
   const materials = createMaterials(THREE);
-  const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x171812, roughness: 0.88, metalness: 0.02 });
-  const shoulderMaterial = new THREE.MeshStandardMaterial({ color: 0x263b2c, roughness: 0.92, metalness: 0.01 });
+  const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x2b2d28, roughness: 0.9, metalness: 0.02 });
+  const shoulderMaterial = new THREE.MeshStandardMaterial({ color: 0x3c553a, roughness: 0.92, metalness: 0.01 });
+  const edgeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xf1ead7,
+    roughness: 0.7,
+    metalness: 0.02,
+    emissive: 0x15110a,
+  });
+  const railMaterial = new THREE.MeshStandardMaterial({ color: 0xd0cabd, roughness: 0.36, metalness: 0.68 });
+  const postMaterial = new THREE.MeshStandardMaterial({ color: 0x5a5144, roughness: 0.74, metalness: 0.18 });
+  const scrubMaterial = new THREE.MeshStandardMaterial({ color: 0x60714c, roughness: 0.9, metalness: 0.01 });
   const dashMaterial = new THREE.MeshStandardMaterial({
     color: 0xd8a64d,
     roughness: 0.58,
@@ -241,7 +250,7 @@ function initMountainGame(THREE, canvas) {
     metalness: 0.08,
   });
 
-  const roadWidth = 5.8;
+  const roadWidth = 6.8;
   const roadSegments = 72;
   const roadLength = 132;
   const localStart = 14;
@@ -276,6 +285,39 @@ function initMountainGame(THREE, canvas) {
     const dash = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.035, 1.65), dashMaterial);
     scene.add(dash);
     return dash;
+  });
+
+  const roadEdgeMeshes = Array.from({ length: 44 }, (_, index) => {
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.035, 2.4), edgeMaterial);
+    edge.userData.side = index % 2 === 0 ? -1 : 1;
+    edge.userData.slot = Math.floor(index / 2);
+    scene.add(edge);
+    return edge;
+  });
+
+  const railMeshes = Array.from({ length: 64 }, (_, index) => {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 2.2), railMaterial);
+    rail.userData.side = index % 2 === 0 ? -1 : 1;
+    rail.userData.slot = Math.floor(index / 2);
+    scene.add(rail);
+    return rail;
+  });
+
+  const railPosts = Array.from({ length: 52 }, (_, index) => {
+    const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.82, 0.18), postMaterial);
+    post.userData.side = index % 2 === 0 ? -1 : 1;
+    post.userData.slot = Math.floor(index / 2);
+    scene.add(post);
+    return post;
+  });
+
+  const scrubMeshes = Array.from({ length: 46 }, (_, index) => {
+    const scrub = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24 + Math.random() * 0.31, 0), scrubMaterial);
+    scrub.userData.worldS = -10 + index * 5.3;
+    scrub.userData.side = index % 2 === 0 ? -1 : 1;
+    scrub.userData.offset = 4.8 + Math.random() * 7.7;
+    scene.add(scrub);
+    return scrub;
   });
 
   const skySun = new THREE.Mesh(
@@ -623,17 +665,17 @@ function initMountainGame(THREE, canvas) {
       roadPositions[roadIndex + 5] = z;
 
       const terrainIndex = i * 12;
-      terrainPositions[terrainIndex] = roadLeft - 34 - bend * 3;
-      terrainPositions[terrainIndex + 1] = y - 2.4 - Math.sin(worldS * 0.026) * 0.7;
+      terrainPositions[terrainIndex] = roadLeft - 38 - bend * 3;
+      terrainPositions[terrainIndex + 1] = y - 0.85 - Math.sin(worldS * 0.026) * 0.35;
       terrainPositions[terrainIndex + 2] = z;
-      terrainPositions[terrainIndex + 3] = roadLeft;
-      terrainPositions[terrainIndex + 4] = y - 0.08;
+      terrainPositions[terrainIndex + 3] = roadLeft - 0.25;
+      terrainPositions[terrainIndex + 4] = y - 0.05;
       terrainPositions[terrainIndex + 5] = z;
-      terrainPositions[terrainIndex + 6] = roadRight;
-      terrainPositions[terrainIndex + 7] = y - 0.08;
+      terrainPositions[terrainIndex + 6] = roadRight + 0.25;
+      terrainPositions[terrainIndex + 7] = y - 0.05;
       terrainPositions[terrainIndex + 8] = z;
-      terrainPositions[terrainIndex + 9] = roadRight + 34 + bend * 3;
-      terrainPositions[terrainIndex + 10] = y - 2.2 + Math.cos(worldS * 0.028) * 0.7;
+      terrainPositions[terrainIndex + 9] = roadRight + 38 + bend * 3;
+      terrainPositions[terrainIndex + 10] = y - 0.8 + Math.cos(worldS * 0.028) * 0.35;
       terrainPositions[terrainIndex + 11] = z;
     }
 
@@ -648,6 +690,43 @@ function initMountainGame(THREE, canvas) {
       dash.position.copy(point);
       dash.position.y += 0.035;
       dash.rotation.set(-roadSlope(worldS), 0, 0);
+    });
+
+    roadEdgeMeshes.forEach((edge) => {
+      const worldS = Math.floor((state.distance + edge.userData.slot * 3.4) / 3.4) * 3.4 + 10;
+      const point = roadPoint(worldS, edge.userData.side * (roadWidth / 2 - 0.22));
+      edge.position.copy(point);
+      edge.position.y += 0.055;
+      edge.rotation.set(-roadSlope(worldS), 0, 0);
+    });
+
+    railMeshes.forEach((rail) => {
+      const worldS = Math.floor((state.distance + rail.userData.slot * 4.1) / 4.1) * 4.1 + 8;
+      const point = roadPoint(worldS, rail.userData.side * (roadWidth / 2 + 0.7));
+      rail.position.copy(point);
+      rail.position.y += 0.86;
+      rail.rotation.set(-roadSlope(worldS), 0, 0);
+    });
+
+    railPosts.forEach((post) => {
+      const worldS = Math.floor((state.distance + post.userData.slot * 5.1) / 5.1) * 5.1 + 7;
+      const point = roadPoint(worldS, post.userData.side * (roadWidth / 2 + 0.72));
+      post.position.copy(point);
+      post.position.y += 0.42;
+      post.rotation.set(-roadSlope(worldS), 0, 0);
+    });
+
+    scrubMeshes.forEach((scrub) => {
+      if (scrub.userData.worldS < state.distance - 18) {
+        scrub.userData.worldS = state.distance + 106 + Math.random() * 42;
+        scrub.userData.side = Math.random() < 0.5 ? -1 : 1;
+        scrub.userData.offset = 4.8 + Math.random() * 9.5;
+      }
+
+      const point = roadPoint(scrub.userData.worldS, scrub.userData.side * (roadWidth / 2 + scrub.userData.offset));
+      scrub.position.copy(point);
+      scrub.position.y += 0.16;
+      scrub.rotation.y += 0.012;
     });
   }
 
