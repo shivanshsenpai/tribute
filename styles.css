@@ -581,8 +581,8 @@ a {
   min-height: 540px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 78% 18%, rgba(216, 166, 77, 0.26), transparent 18%),
-    linear-gradient(180deg, #202c31 0%, #71867a 42%, #121611 100%);
+    radial-gradient(circle at 76% 18%, rgba(216, 166, 77, 0.22), transparent 18%),
+    linear-gradient(180deg, #b8c4ba 0%, #8fa18e 48%, #536548 100%);
 }
 
 #mountainGameCanvas {

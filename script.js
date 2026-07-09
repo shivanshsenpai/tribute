@@ -168,13 +168,36 @@ async function loadMountainGame() {
   if (!canvas) return;
 
   try {
-    const THREE = await import("https://unpkg.com/three@0.165.0/build/three.module.js");
+    const THREE = await loadThreeModule();
     initMountainGame(THREE, canvas);
   } catch (error) {
     if (badge) badge.textContent = "3D could not load, opening fallback ride";
     console.warn("3D mountain game could not load", error);
     setupMountainCanvasFallback();
   }
+}
+
+async function loadThreeModule() {
+  const sources = [
+    "https://unpkg.com/three@0.165.0/build/three.module.js",
+    "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
+  ];
+
+  let lastError;
+  for (const source of sources) {
+    try {
+      return await Promise.race([
+        import(source),
+        new Promise((_, reject) => {
+          window.setTimeout(() => reject(new Error(`Timed out loading ${source}`)), 7000);
+        }),
+      ]);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError || new Error("Three.js could not load");
 }
 
 function initMountainGame(THREE, canvas) {
@@ -202,13 +225,13 @@ function initMountainGame(THREE, canvas) {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.setClearColor(0xa9b9aa, 1);
+  renderer.setClearColor(0xb8c4ba, 1);
 
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xa5b39f, 46, 140);
+  scene.fog = new THREE.Fog(0xb8c4ba, 72, 170);
 
-  const camera = new THREE.PerspectiveCamera(54, 1, 0.1, 260);
-  camera.position.set(0, 5.2, 12);
+  const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 280);
+  camera.position.set(0, 3.8, 9.4);
 
   const ambient = new THREE.HemisphereLight(0xf9e8bd, 0x263829, 1.55);
   scene.add(ambient);
@@ -222,17 +245,23 @@ function initMountainGame(THREE, canvas) {
   scene.add(rim);
 
   const materials = createMaterials(THREE);
-  const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x2b2d28, roughness: 0.9, metalness: 0.02 });
-  const shoulderMaterial = new THREE.MeshStandardMaterial({ color: 0x3c553a, roughness: 0.92, metalness: 0.01 });
+  const asphaltTexture = createAsphaltTexture(THREE);
+  const roadMaterial = new THREE.MeshStandardMaterial({
+    color: 0x30322e,
+    roughness: 0.96,
+    metalness: 0.01,
+    map: asphaltTexture,
+  });
+  const shoulderMaterial = new THREE.MeshStandardMaterial({ color: 0x4b6243, roughness: 0.94, metalness: 0.01 });
   const edgeMaterial = new THREE.MeshStandardMaterial({
     color: 0xf1ead7,
     roughness: 0.7,
     metalness: 0.02,
     emissive: 0x15110a,
   });
-  const railMaterial = new THREE.MeshStandardMaterial({ color: 0xd0cabd, roughness: 0.36, metalness: 0.68 });
-  const postMaterial = new THREE.MeshStandardMaterial({ color: 0x5a5144, roughness: 0.74, metalness: 0.18 });
-  const scrubMaterial = new THREE.MeshStandardMaterial({ color: 0x60714c, roughness: 0.9, metalness: 0.01 });
+  const railMaterial = new THREE.MeshStandardMaterial({ color: 0xbcb6a8, roughness: 0.42, metalness: 0.54 });
+  const postMaterial = new THREE.MeshStandardMaterial({ color: 0x655640, roughness: 0.78, metalness: 0.12 });
+  const scrubMaterial = new THREE.MeshStandardMaterial({ color: 0x6f7c52, roughness: 0.9, metalness: 0.01 });
   const dashMaterial = new THREE.MeshStandardMaterial({
     color: 0xd8a64d,
     roughness: 0.58,
@@ -250,19 +279,28 @@ function initMountainGame(THREE, canvas) {
     metalness: 0.08,
   });
 
-  const roadWidth = 6.8;
-  const roadSegments = 72;
-  const roadLength = 132;
-  const localStart = 14;
+  const roadWidth = 8.2;
+  const roadSegments = 96;
+  const roadLength = 190;
+  const localStart = 26;
   const localStep = roadLength / roadSegments;
   const roadGeometry = new THREE.BufferGeometry();
   const roadPositions = new Float32Array((roadSegments + 1) * 2 * 3);
+  const roadUvs = new Float32Array((roadSegments + 1) * 2 * 2);
   const roadIndices = [];
   for (let i = 0; i < roadSegments; i += 1) {
     const row = i * 2;
     roadIndices.push(row, row + 2, row + 1, row + 1, row + 2, row + 3);
   }
+  for (let i = 0; i <= roadSegments; i += 1) {
+    const row = i * 4;
+    roadUvs[row] = 0;
+    roadUvs[row + 1] = i * 0.42;
+    roadUvs[row + 2] = 1;
+    roadUvs[row + 3] = i * 0.42;
+  }
   roadGeometry.setAttribute("position", new THREE.BufferAttribute(roadPositions, 3));
+  roadGeometry.setAttribute("uv", new THREE.BufferAttribute(roadUvs, 2));
   roadGeometry.setIndex(roadIndices);
   const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
   scene.add(roadMesh);
@@ -281,29 +319,37 @@ function initMountainGame(THREE, canvas) {
   const terrainMesh = new THREE.Mesh(terrainGeometry, shoulderMaterial);
   scene.add(terrainMesh);
 
-  const dashMeshes = Array.from({ length: 24 }, () => {
-    const dash = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.035, 1.65), dashMaterial);
+  const valleyFloor = new THREE.Mesh(
+    new THREE.PlaneGeometry(220, 240, 1, 1),
+    new THREE.MeshStandardMaterial({ color: 0x6c7c60, roughness: 0.98, metalness: 0.01 })
+  );
+  valleyFloor.rotation.x = -Math.PI / 2;
+  valleyFloor.position.set(0, -7.0, -48);
+  scene.add(valleyFloor);
+
+  const dashMeshes = Array.from({ length: 26 }, () => {
+    const dash = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.035, 1.95), dashMaterial);
     scene.add(dash);
     return dash;
   });
 
-  const roadEdgeMeshes = Array.from({ length: 44 }, (_, index) => {
-    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.035, 2.4), edgeMaterial);
+  const roadEdgeMeshes = Array.from({ length: 48 }, (_, index) => {
+    const edge = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.035, 2.6), edgeMaterial);
     edge.userData.side = index % 2 === 0 ? -1 : 1;
     edge.userData.slot = Math.floor(index / 2);
     scene.add(edge);
     return edge;
   });
 
-  const railMeshes = Array.from({ length: 64 }, (_, index) => {
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.12, 2.2), railMaterial);
+  const railMeshes = Array.from({ length: 42 }, (_, index) => {
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.13, 3.1), railMaterial);
     rail.userData.side = index % 2 === 0 ? -1 : 1;
     rail.userData.slot = Math.floor(index / 2);
     scene.add(rail);
     return rail;
   });
 
-  const railPosts = Array.from({ length: 52 }, (_, index) => {
+  const railPosts = Array.from({ length: 38 }, (_, index) => {
     const post = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.82, 0.18), postMaterial);
     post.userData.side = index % 2 === 0 ? -1 : 1;
     post.userData.slot = Math.floor(index / 2);
@@ -311,7 +357,7 @@ function initMountainGame(THREE, canvas) {
     return post;
   });
 
-  const scrubMeshes = Array.from({ length: 46 }, (_, index) => {
+  const scrubMeshes = Array.from({ length: 60 }, (_, index) => {
     const scrub = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24 + Math.random() * 0.31, 0), scrubMaterial);
     scrub.userData.worldS = -10 + index * 5.3;
     scrub.userData.side = index % 2 === 0 ? -1 : 1;
@@ -356,7 +402,8 @@ function initMountainGame(THREE, canvas) {
       name: "Activa",
       baseSpeed: 10.5,
       boost: 4.2,
-      steer: 5.2,
+      steer: 5.0,
+      traction: 4.2,
       jump: 8.4,
       factory: createScooter,
       scale: 1.02,
@@ -366,7 +413,8 @@ function initMountainGame(THREE, canvas) {
       name: "Yezdi",
       baseSpeed: 12.2,
       boost: 4.7,
-      steer: 4.7,
+      steer: 4.6,
+      traction: 3.8,
       jump: 8.1,
       factory: createRoadster,
       scale: 1.02,
@@ -376,7 +424,8 @@ function initMountainGame(THREE, canvas) {
       name: "CBR",
       baseSpeed: 14.2,
       boost: 6.2,
-      steer: 5.8,
+      steer: 5.7,
+      traction: 4.8,
       jump: 9.1,
       factory: createSportBike,
       scale: 1.02,
@@ -398,9 +447,12 @@ function initMountainGame(THREE, canvas) {
     distance: 0,
     speed: rideProfiles.activa.baseSpeed,
     lane: 0,
+    lateralVelocity: 0,
     lean: 0,
     jumpY: 0,
     jumpVelocity: 0,
+    suspension: 0,
+    landingKick: 0,
     score: 0,
     combo: 1,
     comboTimer: 0,
@@ -433,19 +485,36 @@ function initMountainGame(THREE, canvas) {
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
   function roadCenterX(worldS) {
-    return Math.sin(worldS * 0.045) * 4.8 + Math.sin(worldS * 0.014 + 1.2) * 6.8;
+    return Math.sin(worldS * 0.038) * 4.4 + Math.sin(worldS * 0.012 + 1.2) * 6.2;
   }
 
   function roadY(worldS) {
-    return Math.sin(worldS * 0.058) * 1.15 + Math.sin(worldS * 0.021 + 0.7) * 2.25;
+    return Math.sin(worldS * 0.052) * 1.05 + Math.sin(worldS * 0.018 + 0.7) * 2.35;
   }
 
-  function roadSlope(worldS) {
-    return Math.atan2(roadY(worldS + 1.8) - roadY(worldS - 1.8), 3.6);
+  function roadCurve(worldS) {
+    return (roadCenterX(worldS + 2.2) - roadCenterX(worldS - 2.2)) / 4.4;
+  }
+
+  function roadBank(worldS) {
+    return clamp(roadCurve(worldS) * 0.055, -0.16, 0.16);
+  }
+
+  function roadSurfaceY(worldS, lane = 0) {
+    const crown = -Math.abs(lane) * 0.018;
+    return roadY(worldS) + lane * roadBank(worldS) + crown;
+  }
+
+  function roadSlope(worldS, lane = 0) {
+    return Math.atan2(roadSurfaceY(worldS + 1.8, lane) - roadSurfaceY(worldS - 1.8, lane), 3.6);
+  }
+
+  function roadHeading(worldS) {
+    return Math.atan2(roadCenterX(worldS + 2.6) - roadCenterX(worldS - 2.6), 5.2);
   }
 
   function roadPoint(worldS, lane = 0) {
-    return new THREE.Vector3(roadCenterX(worldS) + lane, roadY(worldS), state.distance - worldS);
+    return new THREE.Vector3(roadCenterX(worldS) + lane, roadSurfaceY(worldS, lane), state.distance - worldS);
   }
 
   function setBadge(text) {
@@ -529,9 +598,12 @@ function initMountainGame(THREE, canvas) {
     state.distance = 0;
     state.speed = rideProfiles[state.ride].baseSpeed;
     state.lane = 0;
+    state.lateralVelocity = 0;
     state.lean = 0;
     state.jumpY = 0;
     state.jumpVelocity = 0;
+    state.suspension = 0;
+    state.landingKick = 0;
     state.score = 0;
     state.combo = 1;
     state.comboTimer = 0;
@@ -652,30 +724,32 @@ function initMountainGame(THREE, canvas) {
       const z = localStart - i * localStep;
       const worldS = state.distance - z;
       const center = roadCenterX(worldS);
-      const y = roadY(worldS);
       const roadLeft = center - roadWidth / 2;
       const roadRight = center + roadWidth / 2;
+      const roadLeftY = roadSurfaceY(worldS, -roadWidth / 2);
+      const roadRightY = roadSurfaceY(worldS, roadWidth / 2);
+      const roadCenterY = roadSurfaceY(worldS, 0);
       const bend = Math.sin(worldS * 0.03);
       const roadIndex = i * 6;
       roadPositions[roadIndex] = roadLeft;
-      roadPositions[roadIndex + 1] = y;
+      roadPositions[roadIndex + 1] = roadLeftY;
       roadPositions[roadIndex + 2] = z;
       roadPositions[roadIndex + 3] = roadRight;
-      roadPositions[roadIndex + 4] = y;
+      roadPositions[roadIndex + 4] = roadRightY;
       roadPositions[roadIndex + 5] = z;
 
       const terrainIndex = i * 12;
       terrainPositions[terrainIndex] = roadLeft - 38 - bend * 3;
-      terrainPositions[terrainIndex + 1] = y - 0.85 - Math.sin(worldS * 0.026) * 0.35;
+      terrainPositions[terrainIndex + 1] = roadCenterY - 1.35 - Math.sin(worldS * 0.026) * 0.45;
       terrainPositions[terrainIndex + 2] = z;
       terrainPositions[terrainIndex + 3] = roadLeft - 0.25;
-      terrainPositions[terrainIndex + 4] = y - 0.05;
+      terrainPositions[terrainIndex + 4] = roadLeftY - 0.06;
       terrainPositions[terrainIndex + 5] = z;
       terrainPositions[terrainIndex + 6] = roadRight + 0.25;
-      terrainPositions[terrainIndex + 7] = y - 0.05;
+      terrainPositions[terrainIndex + 7] = roadRightY - 0.06;
       terrainPositions[terrainIndex + 8] = z;
       terrainPositions[terrainIndex + 9] = roadRight + 38 + bend * 3;
-      terrainPositions[terrainIndex + 10] = y - 0.8 + Math.cos(worldS * 0.028) * 0.35;
+      terrainPositions[terrainIndex + 10] = roadCenterY - 1.25 + Math.cos(worldS * 0.028) * 0.45;
       terrainPositions[terrainIndex + 11] = z;
     }
 
@@ -689,7 +763,7 @@ function initMountainGame(THREE, canvas) {
       const point = roadPoint(worldS, 0);
       dash.position.copy(point);
       dash.position.y += 0.035;
-      dash.rotation.set(-roadSlope(worldS), 0, 0);
+      dash.rotation.set(-roadSlope(worldS, 0), roadHeading(worldS) * 0.2, -roadBank(worldS));
     });
 
     roadEdgeMeshes.forEach((edge) => {
@@ -697,23 +771,23 @@ function initMountainGame(THREE, canvas) {
       const point = roadPoint(worldS, edge.userData.side * (roadWidth / 2 - 0.22));
       edge.position.copy(point);
       edge.position.y += 0.055;
-      edge.rotation.set(-roadSlope(worldS), 0, 0);
+      edge.rotation.set(-roadSlope(worldS, edge.userData.side * (roadWidth / 2 - 0.22)), roadHeading(worldS) * 0.22, -roadBank(worldS));
     });
 
     railMeshes.forEach((rail) => {
-      const worldS = Math.floor((state.distance + rail.userData.slot * 4.1) / 4.1) * 4.1 + 8;
-      const point = roadPoint(worldS, rail.userData.side * (roadWidth / 2 + 0.7));
+      const worldS = Math.floor((state.distance + rail.userData.slot * 6.1) / 6.1) * 6.1 + 8;
+      const point = roadPoint(worldS, rail.userData.side * (roadWidth / 2 + 1.45));
       rail.position.copy(point);
-      rail.position.y += 0.86;
-      rail.rotation.set(-roadSlope(worldS), 0, 0);
+      rail.position.y += 0.92;
+      rail.rotation.set(-roadSlope(worldS, rail.userData.side * (roadWidth / 2 + 1.45)), roadHeading(worldS) * 0.22, -roadBank(worldS));
     });
 
     railPosts.forEach((post) => {
-      const worldS = Math.floor((state.distance + post.userData.slot * 5.1) / 5.1) * 5.1 + 7;
-      const point = roadPoint(worldS, post.userData.side * (roadWidth / 2 + 0.72));
+      const worldS = Math.floor((state.distance + post.userData.slot * 7.2) / 7.2) * 7.2 + 7;
+      const point = roadPoint(worldS, post.userData.side * (roadWidth / 2 + 1.5));
       post.position.copy(point);
       post.position.y += 0.42;
-      post.rotation.set(-roadSlope(worldS), 0, 0);
+      post.rotation.set(-roadSlope(worldS, post.userData.side * (roadWidth / 2 + 1.5)), 0, -roadBank(worldS));
     });
 
     scrubMeshes.forEach((scrub) => {
@@ -825,8 +899,22 @@ function initMountainGame(THREE, canvas) {
   function updatePlayer(dt) {
     const profile = rideProfiles[state.ride];
     const steer = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
-    state.lane = clamp(state.lane + steer * profile.steer * dt, -roadWidth * 0.36, roadWidth * 0.36);
-    state.lean += (steer - state.lean) * Math.min(1, dt * 8);
+    const worldS = state.distance - 2.2;
+    const bank = roadBank(worldS);
+    const maxLane = roadWidth * 0.34;
+    const desiredLateral = steer * profile.steer - bank * 4.4 - state.lane * 0.82;
+    state.lateralVelocity += (desiredLateral - state.lateralVelocity) * Math.min(1, dt * profile.traction);
+    state.lateralVelocity *= 1 - Math.min(0.45, dt * 0.9);
+    state.lane += state.lateralVelocity * dt;
+
+    if (Math.abs(state.lane) > maxLane) {
+      state.lane = clamp(state.lane, -maxLane, maxLane);
+      state.lateralVelocity *= -0.22;
+      state.flash = Math.max(state.flash, 0.18);
+    }
+
+    const leanTarget = steer * 0.82 + state.lateralVelocity * 0.13 + bank * 2.8;
+    state.lean += (leanTarget - state.lean) * Math.min(1, dt * 7.5);
 
     if (state.jumpY > 0 || state.jumpVelocity > 0) {
       state.jumpY += state.jumpVelocity * dt;
@@ -834,41 +922,50 @@ function initMountainGame(THREE, canvas) {
       if (state.jumpY < 0) {
         state.jumpY = 0;
         state.jumpVelocity = 0;
+        state.landingKick = 1;
+        state.suspension = 0.18;
       }
     }
 
-    const worldS = state.distance - 2.2;
+    state.landingKick = Math.max(0, state.landingKick - dt * 4.4);
+    state.suspension *= 1 - Math.min(1, dt * 6.5);
+
     const road = roadPoint(worldS, state.lane);
-    const pitch = roadSlope(worldS);
-    player.position.set(road.x, road.y + profile.yOffset + state.jumpY, road.z);
+    const pitch = roadSlope(worldS, state.lane);
+    const heading = roadHeading(worldS);
+    player.position.set(road.x, road.y + profile.yOffset + state.jumpY - state.suspension, road.z);
     player.rotation.x = -pitch;
-    player.rotation.y = Math.PI / 2 + state.lean * 0.14;
-    player.rotation.z = -state.lean * 0.34;
+    player.rotation.y = Math.PI / 2 - heading * 0.65 + state.lean * 0.08;
+    player.rotation.z = -state.lean * 0.36 - bank * 0.82;
     player.userData.wheels?.forEach((wheel) => {
       wheel.rotation.z -= state.speed * dt * 1.2;
     });
 
-    playerLight.position.set(road.x, road.y + 1.7 + state.jumpY, road.z - 1.6);
+    playerLight.position.set(road.x, road.y + 1.65 + state.jumpY, road.z - 1.6);
   }
 
   function updateCamera(dt) {
     const bikeWorldS = state.distance - 2.2;
     const bikePoint = roadPoint(bikeWorldS, state.lane);
-    const lookWorld = bikeWorldS + 26;
-    const lookPoint = roadPoint(lookWorld, 0);
+    const lookWorld = bikeWorldS + 22;
+    const lookPoint = roadPoint(lookWorld, state.lane * 0.18);
+    const heading = roadHeading(bikeWorldS);
     const targetCamera = new THREE.Vector3(
-      bikePoint.x - state.lane * 0.28,
-      bikePoint.y + 4.6 + state.jumpY * 0.45,
-      bikePoint.z + 10.4
+      bikePoint.x - state.lane * 0.34 - heading * 4.2,
+      bikePoint.y + 4.05 + state.jumpY * 0.38 + state.landingKick * 0.18,
+      bikePoint.z + 12.25
     );
-    camera.position.lerp(targetCamera, Math.min(1, dt * 4.8));
-    camera.lookAt(lookPoint.x, lookPoint.y + 1.25, lookPoint.z);
+    camera.position.lerp(targetCamera, Math.min(1, dt * 5.8));
+    camera.lookAt(lookPoint.x, lookPoint.y + 0.86, lookPoint.z);
   }
 
   function updateGame(dt) {
     const profile = rideProfiles[state.ride];
-    const targetSpeed = profile.baseSpeed + (controls.gas ? profile.boost : 0) + Math.min(state.distance / 35, 4.4);
-    state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 3.4);
+    const roadPitch = roadSlope(state.distance + 4, 0);
+    const gradeDrag = clamp(roadPitch * 3.4, -1.2, 1.7);
+    const targetSpeed = profile.baseSpeed + (controls.gas ? profile.boost : 0) + Math.min(state.distance / 42, 3.6) - gradeDrag;
+    state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 2.9);
+    state.speed = Math.max(profile.baseSpeed * 0.68, state.speed);
     state.distance += state.speed * dt;
     state.score += state.speed * dt * (controls.gas ? 7.5 : 5.4) * (1 + (state.combo - 1) * 0.12);
     state.flash = Math.max(0, state.flash - dt * 2.8);
@@ -1030,6 +1127,41 @@ function createTree(THREE, trunkMaterial, leafMaterial) {
   top.position.y = 2.08;
   group.add(trunk, leaves, top);
   return group;
+}
+
+function createAsphaltTexture(THREE) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 256;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#30322f";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < 2800; i += 1) {
+    const shade = 34 + Math.floor(Math.random() * 54);
+    ctx.fillStyle = `rgba(${shade}, ${shade}, ${shade - 4}, ${0.08 + Math.random() * 0.13})`;
+    ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, 1 + Math.random() * 2, 1 + Math.random() * 2);
+  }
+
+  for (let i = 0; i < 26; i += 1) {
+    const x = Math.random() * canvas.width;
+    const y = Math.random() * canvas.height;
+    ctx.strokeStyle = "rgba(10, 10, 9, 0.16)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + (Math.random() - 0.5) * 70, y + 20 + Math.random() * 90);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(2.2, 11);
+  texture.anisotropy = 4;
+  texture.needsUpdate = true;
+  return texture;
 }
 
 function setupMountainCanvasFallback() {
@@ -1845,7 +1977,7 @@ async function loadGarage() {
   if (!canvas) return;
 
   try {
-    const THREE = await import("https://unpkg.com/three@0.165.0/build/three.module.js");
+    const THREE = await loadThreeModule();
     initGarage(THREE, canvas);
   } catch (error) {
     if (fallback) fallback.hidden = false;
