@@ -181,6 +181,8 @@ function initMountainGame(THREE, canvas) {
   const stage = canvas.parentElement;
   const gameRoot = canvas.closest(".mountain-game");
   const badge = document.querySelector("#gameStateBadge");
+  const scoreStat = document.querySelector("#gameScore");
+  const comboStat = document.querySelector("#gameCombo");
   const distanceStat = document.querySelector("#gameDistance");
   const lightsStat = document.querySelector("#gameLights");
   const heartsStat = document.querySelector("#gameHearts");
@@ -189,7 +191,7 @@ function initMountainGame(THREE, canvas) {
   const restartButton = document.querySelector("[data-game-restart]");
   const rideButtons = [...document.querySelectorAll("[data-game-ride]")];
   const controlButtons = [...document.querySelectorAll("[data-game-control]")];
-  const storageKey = "tribute-3d-mountain-best";
+  const storageKey = "tribute-3d-mountain-best-score";
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -357,9 +359,13 @@ function initMountainGame(THREE, canvas) {
     lean: 0,
     jumpY: 0,
     jumpVelocity: 0,
+    score: 0,
+    combo: 1,
+    comboTimer: 0,
+    nearMisses: 0,
     lights: 0,
     hearts: 3,
-    best: 0,
+    bestScore: 0,
     nextSpawn: 38,
     messageTimer: 0,
     flash: 0,
@@ -369,9 +375,9 @@ function initMountainGame(THREE, canvas) {
   };
 
   try {
-    state.best = Number(localStorage.getItem(storageKey) || 0);
+    state.bestScore = Number(localStorage.getItem(storageKey) || 0);
   } catch {
-    state.best = 0;
+    state.bestScore = 0;
   }
 
   let player = null;
@@ -379,7 +385,9 @@ function initMountainGame(THREE, canvas) {
   let resizeQueued = true;
 
   const randomBetween = (min, max) => min + Math.random() * (max - min);
+  const scoreFormat = new Intl.NumberFormat("en-IN");
   const formatKm = (value) => `${value.toFixed(1)} km`;
+  const formatScore = (value) => scoreFormat.format(Math.max(0, Math.floor(value)));
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
   function roadCenterX(worldS) {
@@ -406,21 +414,46 @@ function initMountainGame(THREE, canvas) {
 
   function updateStats() {
     const km = state.distance / 42;
+    if (scoreStat) scoreStat.textContent = formatScore(state.score);
+    if (comboStat) comboStat.textContent = `${state.combo}x`;
     if (distanceStat) distanceStat.textContent = formatKm(km);
     if (lightsStat) lightsStat.textContent = String(state.lights);
     if (heartsStat) heartsStat.textContent = String(state.hearts);
-    if (bestStat) bestStat.textContent = formatKm(Math.max(state.best, km));
+    if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
   }
 
   function saveBest() {
-    const km = state.distance / 42;
-    if (km <= state.best) return;
-    state.best = km;
+    if (state.score <= state.bestScore) return;
+    state.bestScore = state.score;
     try {
-      localStorage.setItem(storageKey, String(km));
+      localStorage.setItem(storageKey, String(state.bestScore));
     } catch {
       return;
     }
+  }
+
+  function addScore(points, reason) {
+    const gained = Math.max(0, Math.round(points));
+    if (gained === 0) return;
+    state.score += gained;
+    if (reason) setBadge(`+${formatScore(gained)} ${reason}`);
+  }
+
+  function buildCombo() {
+    state.combo = clamp(state.combo + 1, 1, 8);
+    state.comboTimer = 7.5;
+  }
+
+  function reduceCombo() {
+    state.combo = 1;
+    state.comboTimer = 0;
+  }
+
+  function applyRockPenalty() {
+    const penalty = Math.min(450, Math.round(state.score * 0.12) + 120);
+    state.score = Math.max(0, state.score - penalty);
+    reduceCombo();
+    return penalty;
   }
 
   function makePlayer(ride) {
@@ -448,6 +481,7 @@ function initMountainGame(THREE, canvas) {
   }
 
   function resetGame() {
+    saveBest();
     state.running = false;
     state.over = false;
     state.distance = 0;
@@ -456,6 +490,10 @@ function initMountainGame(THREE, canvas) {
     state.lean = 0;
     state.jumpY = 0;
     state.jumpVelocity = 0;
+    state.score = 0;
+    state.combo = 1;
+    state.comboTimer = 0;
+    state.nearMisses = 0;
     state.lights = 0;
     state.hearts = 3;
     state.nextSpawn = 38;
@@ -496,7 +534,7 @@ function initMountainGame(THREE, canvas) {
     state.over = true;
     saveBest();
     if (startButton) startButton.textContent = "Start ride";
-    setBadge(`Ride finished at ${formatKm(state.distance / 42)}`);
+    setBadge(`Ride finished: ${formatScore(state.score)} pts`);
     updateStats();
   }
 
@@ -508,7 +546,7 @@ function initMountainGame(THREE, canvas) {
   function jumpBike() {
     if (!state.running || state.over || state.jumpY > 0.04) return;
     state.jumpVelocity = rideProfiles[state.ride].jump;
-    setBadge("Clean hill hop");
+    addScore(40 * state.combo, "clean hop");
   }
 
   function setControl(control, active) {
@@ -657,12 +695,14 @@ function initMountainGame(THREE, canvas) {
 
       const closeForward = Math.abs(item.worldS - bikeWorldS) < 1.5;
       const closeLane = Math.abs(item.lane - state.lane) < 1.02;
+      const nearLane = Math.abs(item.lane - state.lane) < 1.48;
       if (!item.hit && closeForward && closeLane) {
         if (item.type === "light") {
           item.hit = true;
+          addScore(220 * state.combo, `memory light ${state.combo}x`);
           state.lights += 1;
+          buildCombo();
           addRing(item.mesh.position, 0xd8a64d);
-          setBadge("Memory light collected");
           scene.remove(item.mesh);
           return false;
         }
@@ -671,12 +711,21 @@ function initMountainGame(THREE, canvas) {
           item.hit = true;
           state.hearts -= 1;
           state.flash = 1;
+          const penalty = applyRockPenalty();
           addRing(item.mesh.position, 0xb92720);
-          setBadge(state.hearts > 0 ? "Loose stone touched" : "Ride needs a restart");
+          setBadge(state.hearts > 0 ? `Rock hit: -${formatScore(penalty)}` : "Ride needs a restart");
           scene.remove(item.mesh);
           if (state.hearts <= 0) finishRide();
           return false;
         }
+      }
+
+      if (!item.hit && item.type === "rock" && closeForward && nearLane) {
+        item.hit = true;
+        state.nearMisses += 1;
+        const reason = closeLane ? "clean rock hop" : "near miss";
+        addScore((closeLane ? 260 : 140) * state.combo, reason);
+        addRing(item.mesh.position, closeLane ? 0xd8a64d : 0xf8f6f0);
       }
 
       return true;
@@ -742,7 +791,12 @@ function initMountainGame(THREE, canvas) {
     const targetSpeed = profile.baseSpeed + (controls.gas ? profile.boost : 0) + Math.min(state.distance / 35, 4.4);
     state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 3.4);
     state.distance += state.speed * dt;
+    state.score += state.speed * dt * (controls.gas ? 7.5 : 5.4) * (1 + (state.combo - 1) * 0.12);
     state.flash = Math.max(0, state.flash - dt * 2.8);
+    if (state.comboTimer > 0) {
+      state.comboTimer -= dt;
+      if (state.comboTimer <= 0) reduceCombo();
+    }
     if (state.messageTimer > 0) state.messageTimer -= dt;
     if (state.messageTimer <= 0 && badge && state.running) badge.textContent = "3D hill road running";
 
@@ -908,6 +962,8 @@ function setupMountainCanvasFallback() {
 
   const gameRoot = canvas.closest(".mountain-game");
   const badge = document.querySelector("#gameStateBadge");
+  const scoreStat = document.querySelector("#gameScore");
+  const comboStat = document.querySelector("#gameCombo");
   const distanceStat = document.querySelector("#gameDistance");
   const lightsStat = document.querySelector("#gameLights");
   const heartsStat = document.querySelector("#gameHearts");
@@ -916,7 +972,7 @@ function setupMountainCanvasFallback() {
   const restartButton = document.querySelector("[data-game-restart]");
   const rideButtons = [...document.querySelectorAll("[data-game-ride]")];
   const controlButtons = [...document.querySelectorAll("[data-game-control]")];
-  const storageKey = "tribute-mountain-best";
+  const storageKey = "tribute-mountain-best-score";
 
   const rideProfiles = {
     activa: {
@@ -975,10 +1031,13 @@ function setupMountainCanvasFallback() {
     over: false,
     scroll: 0,
     distance: 0,
+    score: 0,
+    combo: 1,
+    comboTimer: 0,
     lights: 0,
     hearts: 3,
     speed: rideProfiles.activa.baseSpeed,
-    best: savedBest,
+    bestScore: savedBest,
     jumpY: 0,
     velocityY: 0,
     lean: 0,
@@ -990,7 +1049,9 @@ function setupMountainCanvasFallback() {
   };
 
   const randomBetween = (min, max) => min + Math.random() * (max - min);
+  const scoreFormat = new Intl.NumberFormat("en-IN");
   const formatKm = (value) => `${value.toFixed(1)} km`;
+  const formatScore = (value) => scoreFormat.format(Math.max(0, Math.floor(value)));
 
   function setBadge(text) {
     if (badge) badge.textContent = text;
@@ -1021,18 +1082,24 @@ function setupMountainCanvasFallback() {
   }
 
   function updateStats() {
+    if (scoreStat) scoreStat.textContent = formatScore(state.score);
+    if (comboStat) comboStat.textContent = `${state.combo}x`;
     if (distanceStat) distanceStat.textContent = formatKm(state.distance);
     if (lightsStat) lightsStat.textContent = String(state.lights);
     if (heartsStat) heartsStat.textContent = String(state.hearts);
-    if (bestStat) bestStat.textContent = formatKm(Math.max(state.best, state.distance));
+    if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
   }
 
   function resetGame() {
+    saveBest();
     const profile = rideProfiles[state.ride];
     state.running = false;
     state.over = false;
     state.scroll = 0;
     state.distance = 0;
+    state.score = 0;
+    state.combo = 1;
+    state.comboTimer = 0;
     state.lights = 0;
     state.hearts = 3;
     state.speed = profile.baseSpeed;
@@ -1049,13 +1116,37 @@ function setupMountainCanvasFallback() {
   }
 
   function saveBest() {
-    if (state.distance <= state.best) return;
-    state.best = state.distance;
+    if (state.score <= state.bestScore) return;
+    state.bestScore = state.score;
     try {
-      localStorage.setItem(storageKey, String(state.best));
+      localStorage.setItem(storageKey, String(state.bestScore));
     } catch {
       return;
     }
+  }
+
+  function addScore(points, reason) {
+    const gained = Math.max(0, Math.round(points));
+    if (gained === 0) return;
+    state.score += gained;
+    if (reason) setBadge(`+${formatScore(gained)} ${reason}`);
+  }
+
+  function buildCombo() {
+    state.combo = Math.min(state.combo + 1, 8);
+    state.comboTimer = 7.5;
+  }
+
+  function reduceCombo() {
+    state.combo = 1;
+    state.comboTimer = 0;
+  }
+
+  function applyRockPenalty() {
+    const penalty = Math.min(450, Math.round(state.score * 0.12) + 120);
+    state.score = Math.max(0, state.score - penalty);
+    reduceCombo();
+    return penalty;
   }
 
   function startRide() {
@@ -1071,7 +1162,7 @@ function setupMountainCanvasFallback() {
     state.running = false;
     state.over = true;
     saveBest();
-    setBadge(`Ride finished at ${formatKm(state.distance)}`);
+    setBadge(`Ride finished: ${formatScore(state.score)} pts`);
     if (startButton) startButton.textContent = "Start ride";
     updateStats();
   }
@@ -1084,7 +1175,7 @@ function setupMountainCanvasFallback() {
   function jumpBike() {
     if (!state.running || state.over || state.jumpY !== 0) return;
     state.velocityY = -rideProfiles[state.ride].jump;
-    setBadge("Clean hop");
+    addScore(40 * state.combo, "clean hop");
   }
 
   function setRide(ride) {
@@ -1156,6 +1247,7 @@ function setupMountainCanvasFallback() {
     state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 3.5);
     state.scroll += state.speed * dt;
     state.distance = state.scroll / 520;
+    state.score += state.speed * dt * (controls.gas ? 0.12 : 0.085) * (1 + (state.combo - 1) * 0.12);
 
     if (state.jumpY < 0 || state.velocityY < 0) {
       state.jumpY += state.velocityY * dt;
@@ -1167,6 +1259,10 @@ function setupMountainCanvasFallback() {
     }
 
     state.flash = Math.max(0, state.flash - dt * 2.4);
+    if (state.comboTimer > 0) {
+      state.comboTimer -= dt;
+      if (state.comboTimer <= 0) reduceCombo();
+    }
     spawnObjects();
 
     const bike = getBikePose();
@@ -1180,9 +1276,10 @@ function setupMountainCanvasFallback() {
         const dx = screenX - bike.x;
         const dy = y - bike.y;
         if (Math.hypot(dx, dy) < 46) {
+          addScore(220 * state.combo, `memory light ${state.combo}x`);
           state.lights += 1;
+          buildCombo();
           addEffect(screenX, y, "#d8a64d");
-          setBadge("Memory light collected");
           return false;
         }
         return true;
@@ -1194,10 +1291,19 @@ function setupMountainCanvasFallback() {
       if (closeX && closeY) {
         state.hearts -= 1;
         state.flash = 1;
+        const penalty = applyRockPenalty();
         addEffect(screenX, rockTop, "#b92720");
-        setBadge(state.hearts > 0 ? "Loose stone touched" : "Ride needs a restart");
+        setBadge(state.hearts > 0 ? `Rock hit: -${formatScore(penalty)}` : "Ride needs a restart");
         if (state.hearts <= 0) finishRide();
         return false;
+      }
+
+      const nearX = Math.abs(screenX - bike.x) < 58;
+      const nearY = Math.abs(bike.bottom - rockTop) < 54;
+      if (!item.scored && nearX && !closeY && nearY) {
+        item.scored = true;
+        addScore(150 * state.combo, "near miss");
+        addEffect(screenX, rockTop, "#f8f6f0");
       }
 
       return true;

@@ -174,6 +174,18 @@
           <aside class="game-panel" aria-label="3D mountain ride controls">
             <div class="game-score-grid">
               <span>
+                <strong id="gameScore">0</strong>
+                score
+              </span>
+              <span>
+                <strong id="gameBest">0</strong>
+                best score
+              </span>
+              <span>
+                <strong id="gameCombo">1x</strong>
+                combo
+              </span>
+              <span>
                 <strong id="gameDistance">0.0 km</strong>
                 distance
               </span>
@@ -184,10 +196,6 @@
               <span>
                 <strong id="gameHearts">3</strong>
                 hearts
-              </span>
-              <span>
-                <strong id="gameBest">0.0 km</strong>
-                best
               </span>
             </div>
 
@@ -209,7 +217,10 @@
               <button type="button" data-game-control="gas">Gas</button>
             </div>
 
-            <p class="game-help">Keyboard: arrows to lean, Space to hop, Shift for gas. Click the road to begin.</p>
+            <p class="game-help">
+              Keyboard: arrows to lean, Space to hop, Shift for gas. Score grows from
+              distance, lights, clean hops, near misses, and combo.
+            </p>
           </aside>
         </div>
       </section>
