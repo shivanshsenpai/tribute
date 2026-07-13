@@ -179,6 +179,7 @@ async function loadMountainGame() {
 
 async function loadThreeModule() {
   const sources = [
+    "./assets/vendor/three.module.min.js",
     "https://unpkg.com/three@0.165.0/build/three.module.js",
     "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js",
   ];
@@ -213,6 +214,8 @@ function initMountainGame(THREE, canvas) {
   const heartsStat = document.querySelector("#gameHearts");
   const jumpsStat = document.querySelector("#gameJumps");
   const bestStat = document.querySelector("#gameBest");
+  const nitroText = document.querySelector("#gameNitroText");
+  const nitroFill = document.querySelector("#gameNitroFill");
   const startButton = document.querySelector("[data-game-start]");
   const restartButton = document.querySelector("[data-game-restart]");
   const rideButtons = [...document.querySelectorAll("[data-game-ride]")];
@@ -235,8 +238,8 @@ function initMountainGame(THREE, canvas) {
   renderer.setClearColor(0xb8c4ba, 1);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0xa9bbb0);
-  scene.fog = new THREE.Fog(0xb8c4ba, 72, 170);
+  scene.background = createSkyTexture(THREE);
+  scene.fog = new THREE.Fog(0xa9bbb2, 82, 205);
 
   const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 280);
   camera.position.set(0, 3.8, 9.4);
@@ -300,6 +303,24 @@ function initMountainGame(THREE, canvas) {
     emissiveIntensity: 1.2,
     roughness: 0.42,
     metalness: 0.18,
+  });
+  const checkpointMaterial = new THREE.MeshStandardMaterial({
+    color: 0x20231f,
+    roughness: 0.5,
+    metalness: 0.58,
+  });
+  const checkpointAccentMaterial = new THREE.MeshStandardMaterial({
+    color: 0xef6b1b,
+    emissive: 0x6f1c04,
+    emissiveIntensity: 0.8,
+    roughness: 0.36,
+    metalness: 0.34,
+  });
+  const reflectorMaterial = new THREE.MeshStandardMaterial({
+    color: 0xfff2bd,
+    emissive: 0xd86f15,
+    emissiveIntensity: 1.4,
+    roughness: 0.28,
   });
 
   const roadWidth = 8.2;
@@ -381,6 +402,21 @@ function initMountainGame(THREE, canvas) {
     return post;
   });
 
+  const delineators = Array.from({ length: 34 }, (_, index) => {
+    const marker = createDelineator(THREE, edgeMaterial, reflectorMaterial);
+    marker.userData.side = index % 2 === 0 ? -1 : 1;
+    marker.userData.slot = Math.floor(index / 2);
+    scene.add(marker);
+    return marker;
+  });
+
+  const chevrons = Array.from({ length: 16 }, (_, index) => {
+    const sign = createChevronSign(THREE, checkpointMaterial, checkpointAccentMaterial);
+    sign.userData.slot = index;
+    scene.add(sign);
+    return sign;
+  });
+
   const scrubMeshes = Array.from({ length: 60 }, (_, index) => {
     const scrub = new THREE.Mesh(new THREE.DodecahedronGeometry(0.24 + Math.random() * 0.31, 0), scrubMaterial);
     scrub.userData.worldS = -10 + index * 5.3;
@@ -397,20 +433,43 @@ function initMountainGame(THREE, canvas) {
   skySun.position.set(24, 22, -92);
   scene.add(skySun);
 
+  const sunGlow = new THREE.Sprite(
+    new THREE.SpriteMaterial({
+      map: createGlowTexture(THREE),
+      color: 0xffd58a,
+      transparent: true,
+      opacity: 0.36,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      fog: false,
+    })
+  );
+  sunGlow.position.copy(skySun.position);
+  sunGlow.scale.set(9, 9, 1);
+  scene.add(sunGlow);
+
   const mountainGroup = new THREE.Group();
   scene.add(mountainGroup);
-  for (let i = 0; i < 18; i += 1) {
-    const mountain = new THREE.Mesh(
-      new THREE.ConeGeometry(8 + (i % 4) * 3, 16 + (i % 5) * 4, 4),
-      new THREE.MeshStandardMaterial({ color: i % 2 ? 0x51644f : 0x465846, roughness: 0.96 })
-    );
-    mountain.position.set(-60 + i * 7.5, 2 + (i % 3), -104 - (i % 4) * 8);
-    mountain.rotation.y = Math.PI / 4;
+  for (let i = 0; i < 24; i += 1) {
+    const mountain = createMountainModel(THREE, i);
+    mountain.position.set(-78 + i * 6.9, -1.5 + (i % 3), -116 - (i % 5) * 11);
+    const scale = 0.78 + (i % 6) * 0.11;
+    mountain.scale.set(scale, 0.9 + (i % 4) * 0.13, scale);
+    mountain.rotation.y = (i % 5) * 0.27;
     mountainGroup.add(mountain);
   }
 
+  const clouds = Array.from({ length: 8 }, (_, index) => {
+    const cloud = createCloud(THREE);
+    cloud.position.set(-74 + index * 21, 19 + (index % 3) * 3.2, -68 - (index % 4) * 18);
+    cloud.scale.setScalar(1.8 + (index % 4) * 0.55);
+    cloud.userData.drift = 0.08 + (index % 3) * 0.025;
+    scene.add(cloud);
+    return cloud;
+  });
+
   const treeTemplate = createTree(THREE, treeTrunkMaterial, treeLeafMaterial);
-  const trees = Array.from({ length: 44 }, (_, index) => {
+  const trees = Array.from({ length: 54 }, (_, index) => {
     const tree = treeTemplate.clone(true);
     tree.userData.worldS = -20 + index * 6.8;
     tree.userData.side = index % 2 === 0 ? -1 : 1;
@@ -420,6 +479,10 @@ function initMountainGame(THREE, canvas) {
     scene.add(tree);
     return tree;
   });
+
+  const dustField = createParticleField(THREE, 44, 0xc6a36a, 0.18, 0.52);
+  const nitroField = createParticleField(THREE, 34, 0xef6b1b, 0.13, 0.88);
+  scene.add(dustField.points, nitroField.points);
 
   const rideProfiles = {
     activa: {
@@ -469,6 +532,7 @@ function initMountainGame(THREE, canvas) {
     jump: false,
     gas: false,
     brake: false,
+    nitro: false,
   };
 
   const state = {
@@ -495,11 +559,16 @@ function initMountainGame(THREE, canvas) {
     jumps: 0,
     hearts: 3,
     boostTimer: 0,
+    nitro: 35,
+    nitroActive: false,
     crashTimer: 0,
     offRoad: 0,
     bestScore: 0,
     nextSpawn: 38,
     lastSpawnType: "light",
+    checkpoints: 0,
+    nextCheckpoint: 62,
+    checkpointGate: null,
     messageTimer: 0,
     flash: 0,
     lastTime: 0,
@@ -563,6 +632,7 @@ function initMountainGame(THREE, canvas) {
   }
 
   function updateStats() {
+    const nitroPercent = Math.round(state.nitro);
     const km = state.distance / 42;
     if (scoreStat) scoreStat.textContent = formatScore(state.score);
     if (comboStat) comboStat.textContent = `${state.combo}x`;
@@ -572,7 +642,10 @@ function initMountainGame(THREE, canvas) {
     if (heartsStat) heartsStat.textContent = String(state.hearts);
     if (jumpsStat) jumpsStat.textContent = String(state.jumps);
     if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
+    if (nitroText) nitroText.textContent = `${nitroPercent}%`;
+    if (nitroFill) nitroFill.style.transform = `scaleX(${clamp(state.nitro / 100, 0, 1)})`;
     if (gameRoot) {
+      gameRoot.classList.toggle("is-nitro", state.nitroActive);
       gameRoot.dataset.gameRunning = String(state.running);
       gameRoot.dataset.gameSpeed = String(Math.round(state.speed * 3.25));
       gameRoot.dataset.gameScore = String(Math.floor(state.score));
@@ -580,6 +653,8 @@ function initMountainGame(THREE, canvas) {
       gameRoot.dataset.gameLane = state.lane.toFixed(3);
       gameRoot.dataset.gameJumps = String(state.jumps);
       gameRoot.dataset.gameOffRoad = state.offRoad.toFixed(3);
+      gameRoot.dataset.gameNitro = String(nitroPercent);
+      gameRoot.dataset.gameCheckpoints = String(state.checkpoints);
     }
   }
 
@@ -627,6 +702,9 @@ function initMountainGame(THREE, canvas) {
 
     const profile = rideProfiles[ride];
     player = profile.factory(THREE, materials);
+    const rider = createRider(THREE, materials, ride);
+    player.add(rider);
+    player.userData.rider = rider;
     player.scale.setScalar(profile.scale);
     player.rotation.y = Math.PI / 2;
     player.traverse((child) => {
@@ -670,15 +748,23 @@ function initMountainGame(THREE, canvas) {
     state.jumps = 0;
     state.hearts = 3;
     state.boostTimer = 0;
+    state.nitro = 35;
+    state.nitroActive = false;
     state.crashTimer = 0;
     state.offRoad = 0;
     state.nextSpawn = 38;
     state.lastSpawnType = "light";
+    state.checkpoints = 0;
+    state.nextCheckpoint = 62;
     state.flash = 0;
     state.obstacles.forEach((item) => scene.remove(item.mesh));
     state.rings.forEach((ring) => scene.remove(ring));
     state.obstacles = [];
     state.rings = [];
+    if (state.checkpointGate) scene.remove(state.checkpointGate.mesh);
+    state.checkpointGate = null;
+    resetParticleField(dustField);
+    resetParticleField(nitroField);
     if (startButton) startButton.textContent = "Start ride";
     setBadge("Press W to throttle and Space to jump");
     updateStats();
@@ -711,6 +797,7 @@ function initMountainGame(THREE, canvas) {
   function pauseRide() {
     if (!state.running || state.over) return;
     state.running = false;
+    state.nitroActive = false;
     clearControls();
     if (startButton) startButton.textContent = "Resume ride";
     setBadge("Ride paused");
@@ -725,6 +812,7 @@ function initMountainGame(THREE, canvas) {
   function finishRide() {
     state.running = false;
     state.over = true;
+    state.nitroActive = false;
     clearControls();
     saveBest();
     if (startButton) startButton.textContent = "Start ride";
@@ -795,6 +883,70 @@ function initMountainGame(THREE, canvas) {
       group.add(stripe);
     }
     return { type: "boost", worldS, lane, mesh: group, hit: false };
+  }
+
+  function createCheckpointGate(worldS) {
+    const group = new THREE.Group();
+    const leftPost = new THREE.Mesh(new THREE.BoxGeometry(0.24, 3.2, 0.24), checkpointMaterial);
+    const rightPost = leftPost.clone();
+    leftPost.position.set(-roadWidth / 2 - 0.35, 1.55, 0);
+    rightPost.position.set(roadWidth / 2 + 0.35, 1.55, 0);
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(roadWidth + 1.1, 0.32, 0.32), checkpointAccentMaterial);
+    beam.position.y = 3.12;
+    const banner = new THREE.Mesh(
+      new THREE.PlaneGeometry(3.2, 0.62),
+      new THREE.MeshBasicMaterial({ map: createCheckpointBannerTexture(THREE), transparent: true, side: THREE.DoubleSide })
+    );
+    banner.position.set(0, 3.12, 0.18);
+    const lamps = [];
+    for (let index = 0; index < 7; index += 1) {
+      const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.085, 10, 8), reflectorMaterial);
+      lamp.position.set(-3 + index, 3.33, 0.08);
+      lamps.push(lamp);
+      group.add(lamp);
+    }
+    group.add(leftPost, rightPost, beam, banner);
+    group.userData.lamps = lamps;
+    group.traverse((child) => {
+      if (child.isMesh) child.castShadow = true;
+    });
+    return { worldS, mesh: group, hit: false };
+  }
+
+  function updateCheckpoint(dt) {
+    if (!state.checkpointGate && state.nextCheckpoint < state.distance + 108) {
+      state.checkpointGate = createCheckpointGate(state.nextCheckpoint);
+      scene.add(state.checkpointGate.mesh);
+    }
+
+    const gate = state.checkpointGate;
+    if (!gate) return;
+    const point = roadPoint(gate.worldS, 0);
+    gate.mesh.position.copy(point);
+    gate.mesh.rotation.y = roadHeading(gate.worldS);
+    gate.mesh.userData.lamps.forEach((lamp, index) => {
+      const pulse = Math.sin(performance.now() * 0.009 + index * 0.9);
+      lamp.scale.setScalar(0.9 + pulse * 0.18);
+    });
+
+    const bikeWorldS = state.distance - 2.2;
+    if (!gate.hit && gate.worldS <= bikeWorldS + 0.25) {
+      gate.hit = true;
+      state.checkpoints += 1;
+      state.nitro = Math.min(100, state.nitro + 28);
+      if (state.checkpoints % 3 === 0 && state.hearts < 3) state.hearts += 1;
+      addScore(650 * state.combo, `checkpoint ${state.checkpoints}`);
+      buildCombo();
+      const ringPosition = point.clone();
+      ringPosition.y += 1.5;
+      addRing(ringPosition, 0xef6b1b);
+    }
+
+    if (gate.worldS < state.distance - 18) {
+      scene.remove(gate.mesh);
+      state.checkpointGate = null;
+      state.nextCheckpoint += randomBetween(150, 185);
+    }
   }
 
   function spawnObjects() {
@@ -899,6 +1051,25 @@ function initMountainGame(THREE, canvas) {
       post.rotation.set(-roadSlope(worldS, post.userData.side * (roadWidth / 2 + 1.5)), 0, -roadBank(worldS));
     });
 
+    delineators.forEach((marker) => {
+      const worldS = Math.floor((state.distance + marker.userData.slot * 6.6) / 6.6) * 6.6 + 9;
+      const lane = marker.userData.side * (roadWidth / 2 + 0.68);
+      const point = roadPoint(worldS, lane);
+      marker.position.copy(point);
+      marker.rotation.set(0, roadHeading(worldS), -roadBank(worldS));
+    });
+
+    chevrons.forEach((sign) => {
+      const worldS = Math.floor((state.distance + sign.userData.slot * 10.8) / 10.8) * 10.8 + 18;
+      const curve = roadCurve(worldS);
+      const side = curve >= 0 ? -1 : 1;
+      sign.visible = Math.abs(curve) > 0.08;
+      const point = roadPoint(worldS, side * (roadWidth / 2 + 2.05));
+      sign.position.copy(point);
+      sign.rotation.set(0, roadHeading(worldS), -roadBank(worldS));
+      sign.userData.arrow.scale.x = side;
+    });
+
     scrubMeshes.forEach((scrub) => {
       if (scrub.userData.worldS < state.distance - 18) {
         scrub.userData.worldS = state.distance + 106 + Math.random() * 42;
@@ -933,8 +1104,47 @@ function initMountainGame(THREE, canvas) {
     });
   }
 
+  function updateScenery(dt) {
+    clouds.forEach((cloud) => {
+      cloud.position.x += cloud.userData.drift * dt;
+      if (cloud.position.x > 92) cloud.position.x = -92;
+    });
+    skySun.rotation.y += dt * 0.015;
+    sunGlow.material.opacity = 0.33 + Math.sin(performance.now() * 0.0007) * 0.04;
+  }
+
+  function updateParticleEffects(dt) {
+    const worldS = state.distance - 2.2;
+    const road = roadPoint(worldS, state.lane);
+    if (state.running && state.speed > 4) {
+      const dustRate = state.offRoad * 38 + (controls.brake ? 9 : 0);
+      if (Math.random() < dt * dustRate) {
+        emitParticle(
+          dustField,
+          new THREE.Vector3(road.x + randomBetween(-0.38, 0.38), road.y + 0.12, road.z + 0.7),
+          new THREE.Vector3(randomBetween(-0.35, 0.35), randomBetween(0.18, 0.5), 0.8 + state.speed * 0.055),
+          randomBetween(0.55, 0.95)
+        );
+      }
+
+      if (state.nitroActive) {
+        for (let index = 0; index < 2; index += 1) {
+          emitParticle(
+            nitroField,
+            new THREE.Vector3(road.x + randomBetween(-0.22, 0.22), road.y + 0.48, road.z + 0.72),
+            new THREE.Vector3(randomBetween(-0.08, 0.08), randomBetween(-0.02, 0.12), 1.8 + state.speed * 0.07),
+            randomBetween(0.28, 0.48)
+          );
+        }
+      }
+    }
+    stepParticleField(dustField, dt);
+    stepParticleField(nitroField, dt);
+  }
+
   function updateObjects(dt) {
     spawnObjects();
+    updateCheckpoint(dt);
     const bikeWorldS = state.distance - 2.2;
 
     state.obstacles = state.obstacles.filter((item) => {
@@ -971,6 +1181,7 @@ function initMountainGame(THREE, canvas) {
           item.hit = true;
           addScore(220 * state.combo, `memory light ${state.combo}x`);
           state.lights += 1;
+          state.nitro = Math.min(100, state.nitro + 18);
           buildCombo();
           addRing(item.mesh.position, 0xd8a64d);
           scene.remove(item.mesh);
@@ -980,6 +1191,7 @@ function initMountainGame(THREE, canvas) {
         if (item.type === "boost" && state.jumpY < 0.5) {
           item.hit = true;
           state.boostTimer = 3.2;
+          state.nitro = Math.min(100, state.nitro + 12);
           state.speed = Math.min(rideProfiles[state.ride].maxSpeed + 5, state.speed + 4.5);
           addScore(180 * state.combo, "road boost");
           buildCombo();
@@ -1087,8 +1299,14 @@ function initMountainGame(THREE, canvas) {
     player.userData.wheels?.forEach((wheel) => {
       wheel.rotation.z -= state.speed * dt * 1.2;
     });
+    if (player.userData.rider) {
+      const rideLean = state.ride === "cbr" ? -0.075 : controls.gas ? -0.025 : 0;
+      const targetRiderLean = rideLean - state.lean * 0.025 + (state.jumpY > 0 ? 0.045 : 0);
+      player.userData.rider.rotation.z +=
+        (targetRiderLean - player.userData.rider.rotation.z) * Math.min(1, dt * 7.5);
+    }
 
-    playerLight.intensity = 7 + speedRatio * 3;
+    playerLight.intensity = 7 + speedRatio * 3 + (state.nitroActive ? 4 : 0);
     playerLight.position.set(road.x, road.y + 1.65 + state.jumpY, road.z - 1.6);
   }
 
@@ -1109,7 +1327,7 @@ function initMountainGame(THREE, canvas) {
     camera.position.lerp(targetCamera, Math.min(1, dt * 5.8));
     camera.lookAt(lookPoint.x, lookPoint.y + 0.86, lookPoint.z);
     camera.rotation.z += (-state.lean * 0.025 - roadBank(bikeWorldS) * 0.16 - camera.rotation.z) * Math.min(1, dt * 4.8);
-    const targetFov = 56 + speedRatio * 6 + (state.boostTimer > 0 ? 3 : 0);
+    const targetFov = 56 + speedRatio * 6 + (state.boostTimer > 0 ? 3 : 0) + (state.nitroActive ? 5 : 0);
     camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 3.8);
     camera.updateProjectionMatrix();
   }
@@ -1119,18 +1337,22 @@ function initMountainGame(THREE, canvas) {
     const roadPitch = roadSlope(state.distance + 4, 0);
     const throttle = controls.gas && !controls.brake ? 1 : 0;
     const brake = controls.brake ? 1 : 0;
+    state.nitroActive = Boolean(controls.nitro && throttle && state.nitro > 0.4 && state.speed > 4);
+    if (state.nitroActive) state.nitro = Math.max(0, state.nitro - dt * 23);
+    else state.nitro = Math.min(100, state.nitro + dt * 0.75);
     const speedRatio = clamp(state.speed / profile.maxSpeed, 0, 1.35);
     const engineDrive = throttle ? profile.acceleration * (1 - speedRatio * 0.42) : 0;
     const idleDrive = !brake && state.speed < profile.idleSpeed ? (profile.idleSpeed - state.speed) * 1.7 : 0;
     const brakeForce = brake ? profile.braking * clamp(state.speed / 4, 0.28, 1) : 0;
     const rollingDrag = 0.72 + state.speed * 0.032 + state.offRoad * (6.5 + state.speed * 0.18);
     const gradeForce = -Math.sin(roadPitch) * 8.8;
-    const boostForce = state.boostTimer > 0 ? 5.6 : 0;
+    const boostForce = (state.boostTimer > 0 ? 5.6 : 0) + (state.nitroActive ? 10.8 : 0);
     state.speed += (engineDrive + idleDrive + gradeForce + boostForce - brakeForce - rollingDrag) * dt;
-    const maxSpeed = profile.maxSpeed + (state.boostTimer > 0 ? 5.5 : 0);
+    const maxSpeed = profile.maxSpeed + (state.boostTimer > 0 ? 5.5 : 0) + (state.nitroActive ? 8.5 : 0);
     state.speed = clamp(state.speed, 0, maxSpeed);
     state.distance += state.speed * dt;
-    state.score += state.speed * dt * (throttle ? 4.2 : 2.8) * (1 + (state.combo - 1) * 0.12);
+    state.score +=
+      state.speed * dt * (throttle ? 4.2 : 2.8) * (state.nitroActive ? 1.35 : 1) * (1 + (state.combo - 1) * 0.12);
     state.boostTimer = Math.max(0, state.boostTimer - dt);
     state.crashTimer = Math.max(0, state.crashTimer - dt);
     state.jumpCooldown = Math.max(0, state.jumpCooldown - dt);
@@ -1141,7 +1363,8 @@ function initMountainGame(THREE, canvas) {
     }
     if (state.messageTimer > 0) state.messageTimer -= dt;
     if (state.messageTimer <= 0 && badge && state.running) {
-      if (state.boostTimer > 0) badge.textContent = `BOOST | ${Math.round(state.speed * 3.25)} km/h`;
+      if (state.nitroActive) badge.textContent = `NITRO | ${Math.round(state.speed * 3.25)} km/h`;
+      else if (state.boostTimer > 0) badge.textContent = `BOOST | ${Math.round(state.speed * 3.25)} km/h`;
       else if (state.speed < 2) badge.textContent = "Hold W to accelerate";
       else if (state.offRoad > 0.2) badge.textContent = "Ease back onto the road";
       else badge.textContent = `${Math.round(state.speed * 3.25)} km/h | ${state.combo}x combo`;
@@ -1186,6 +1409,7 @@ function initMountainGame(THREE, canvas) {
     const dt = Math.min((now - state.lastTime) / 1000 || 0, 0.033);
     state.lastTime = now;
 
+    updateScenery(dt);
     if (state.running) updateGame(dt);
     else {
       updateRoadMesh();
@@ -1193,6 +1417,7 @@ function initMountainGame(THREE, canvas) {
       updatePlayer(dt);
       updateCamera(dt);
     }
+    updateParticleEffects(dt);
 
     renderer.render(scene, camera);
     renderOverlayFlash();
@@ -1235,8 +1460,8 @@ function initMountainGame(THREE, canvas) {
       KeyD: "right",
       ArrowUp: "gas",
       KeyW: "gas",
-      ShiftLeft: "gas",
-      ShiftRight: "gas",
+      ShiftLeft: "nitro",
+      ShiftRight: "nitro",
       ArrowDown: "brake",
       KeyS: "brake",
     };
@@ -1267,8 +1492,8 @@ function initMountainGame(THREE, canvas) {
       KeyD: "right",
       ArrowUp: "gas",
       KeyW: "gas",
-      ShiftLeft: "gas",
-      ShiftRight: "gas",
+      ShiftLeft: "nitro",
+      ShiftRight: "nitro",
       ArrowDown: "brake",
       KeyS: "brake",
     };
@@ -1307,6 +1532,244 @@ function createTree(THREE, trunkMaterial, leafMaterial) {
   const top = new THREE.Mesh(new THREE.ConeGeometry(0.42, 1.05, 9), leafMaterial);
   top.position.y = 2.08;
   group.add(trunk, leaves, top);
+  return group;
+}
+
+function createSkyTexture(THREE) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 1024;
+  canvas.height = 512;
+  const ctx = canvas.getContext("2d");
+  const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  sky.addColorStop(0, "#668a95");
+  sky.addColorStop(0.48, "#afc4ba");
+  sky.addColorStop(0.78, "#e1c78f");
+  sky.addColorStop(1, "#7d8d6a");
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createGlowTexture(THREE) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext("2d");
+  const glow = ctx.createRadialGradient(64, 64, 3, 64, 64, 62);
+  glow.addColorStop(0, "rgba(255, 246, 190, 1)");
+  glow.addColorStop(0.18, "rgba(255, 203, 92, 0.72)");
+  glow.addColorStop(0.55, "rgba(239, 107, 27, 0.2)");
+  glow.addColorStop(1, "rgba(239, 107, 27, 0)");
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, 128, 128);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createCheckpointBannerTexture(THREE) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 512;
+  canvas.height = 112;
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#151514";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "#ef6b1b";
+  ctx.fillRect(0, 0, canvas.width, 10);
+  ctx.fillRect(0, canvas.height - 10, canvas.width, 10);
+  ctx.fillStyle = "#f8f6f0";
+  ctx.font = "900 48px Arial, sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("MEMORY PASS", canvas.width / 2, canvas.height / 2 + 2);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function createMountainModel(THREE, seed) {
+  const group = new THREE.Group();
+  const radius = 7.5 + (seed % 5) * 1.5;
+  const height = 17 + (seed % 6) * 2.7;
+  const geometry = new THREE.ConeGeometry(radius, height, 8, 4, false);
+  const positions = geometry.attributes.position;
+  for (let index = 0; index < positions.count; index += 1) {
+    const x = positions.getX(index);
+    const z = positions.getZ(index);
+    const wobble = 1 + Math.sin(index * 2.17 + seed * 1.31) * 0.09;
+    positions.setX(index, x * wobble);
+    positions.setZ(index, z * (2 - wobble));
+  }
+  geometry.computeVertexNormals();
+  const colors = [0x3f5548, 0x526457, 0x657160, 0x334a42];
+  const mountain = new THREE.Mesh(
+    geometry,
+    new THREE.MeshStandardMaterial({ color: colors[seed % colors.length], roughness: 1, flatShading: true })
+  );
+  const cap = new THREE.Mesh(
+    new THREE.ConeGeometry(radius * 0.34, height * 0.27, 8, 1),
+    new THREE.MeshStandardMaterial({ color: 0xb8c0ad, roughness: 0.94, flatShading: true })
+  );
+  cap.position.y = height * 0.37;
+  group.add(mountain, cap);
+  return group;
+}
+
+function createCloud(THREE) {
+  const group = new THREE.Group();
+  const material = new THREE.MeshBasicMaterial({
+    color: 0xe6eadf,
+    transparent: true,
+    opacity: 0.09,
+    depthWrite: false,
+    fog: false,
+  });
+  const parts = [
+    [-0.7, 0, 0, 0.8],
+    [0, 0.16, 0, 1.05],
+    [0.85, -0.02, 0, 0.72],
+    [0.2, -0.18, 0.1, 1.15],
+  ];
+  parts.forEach(([x, y, z, scale]) => {
+    const puff = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 7), material);
+    puff.position.set(x, y, z);
+    puff.scale.set(scale * 1.6, scale * 0.55, scale);
+    group.add(puff);
+  });
+  return group;
+}
+
+function createDelineator(THREE, postMaterial, reflectorMaterial) {
+  const group = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.82, 0.13), postMaterial);
+  post.position.y = 0.4;
+  const reflector = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.14, 0.035), reflectorMaterial);
+  reflector.position.set(0, 0.65, 0.08);
+  group.add(post, reflector);
+  return group;
+}
+
+function createChevronSign(THREE, boardMaterial, accentMaterial) {
+  const group = new THREE.Group();
+  const post = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.2, 0.12), boardMaterial);
+  post.position.y = 0.58;
+  const board = new THREE.Mesh(new THREE.BoxGeometry(1.05, 0.52, 0.09), boardMaterial);
+  board.position.y = 1.08;
+  const arrow = new THREE.Group();
+  const upper = new THREE.Mesh(new THREE.BoxGeometry(0.56, 0.12, 0.06), accentMaterial);
+  const lower = upper.clone();
+  upper.position.set(0.06, 0.15, 0.08);
+  lower.position.set(0.06, -0.15, 0.08);
+  upper.rotation.z = -0.58;
+  lower.rotation.z = 0.58;
+  arrow.position.y = 1.08;
+  arrow.add(upper, lower);
+  group.add(post, board, arrow);
+  group.userData.arrow = arrow;
+  return group;
+}
+
+function createParticleField(THREE, count, color, size, opacity) {
+  const positions = new Float32Array(count * 3);
+  for (let index = 0; index < count; index += 1) positions[index * 3 + 1] = -100;
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({
+    color,
+    size,
+    transparent: true,
+    opacity,
+    depthWrite: false,
+    sizeAttenuation: true,
+  });
+  const points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  return {
+    points,
+    positions,
+    velocities: Array.from({ length: count }, () => new THREE.Vector3()),
+    life: new Float32Array(count),
+    cursor: 0,
+  };
+}
+
+function emitParticle(field, position, velocity, life) {
+  const count = field.life.length;
+  let slot = field.cursor;
+  for (let offset = 0; offset < count; offset += 1) {
+    const candidate = (field.cursor + offset) % count;
+    if (field.life[candidate] <= 0) {
+      slot = candidate;
+      break;
+    }
+  }
+  field.cursor = (slot + 1) % count;
+  field.life[slot] = life;
+  field.velocities[slot].copy(velocity);
+  field.positions[slot * 3] = position.x;
+  field.positions[slot * 3 + 1] = position.y;
+  field.positions[slot * 3 + 2] = position.z;
+}
+
+function stepParticleField(field, dt) {
+  for (let index = 0; index < field.life.length; index += 1) {
+    if (field.life[index] <= 0) continue;
+    field.life[index] -= dt;
+    if (field.life[index] <= 0) {
+      field.positions[index * 3 + 1] = -100;
+      continue;
+    }
+    const velocity = field.velocities[index];
+    field.positions[index * 3] += velocity.x * dt;
+    field.positions[index * 3 + 1] += velocity.y * dt;
+    field.positions[index * 3 + 2] += velocity.z * dt;
+    velocity.multiplyScalar(Math.max(0, 1 - dt * 1.8));
+  }
+  field.points.geometry.attributes.position.needsUpdate = true;
+}
+
+function resetParticleField(field) {
+  field.life.fill(0);
+  for (let index = 0; index < field.life.length; index += 1) field.positions[index * 3 + 1] = -100;
+  field.points.geometry.attributes.position.needsUpdate = true;
+}
+
+function createRider(THREE, materials, ride) {
+  const group = new THREE.Group();
+  const setups = {
+    activa: { hip: [-0.34, 1.33], shoulder: [-0.18, 1.82], head: [-0.12, 2.15], handle: [0.92, 1.58], foot: [0.02, 0.58] },
+    yezdi: { hip: [-0.38, 1.34], shoulder: [-0.08, 1.82], head: [0.02, 2.14], handle: [1.02, 1.4], foot: [-0.02, 0.62] },
+    cbr: { hip: [-0.45, 1.34], shoulder: [0.18, 1.7], head: [0.38, 1.98], handle: [1.0, 1.34], foot: [-0.02, 0.62] },
+  };
+  const setup = setups[ride];
+  const helmetMaterial = ride === "cbr" ? materials.orange : ride === "yezdi" ? materials.green : materials.white;
+  const torsoX = (setup.hip[0] + setup.shoulder[0]) / 2;
+  const torsoY = (setup.hip[1] + setup.shoulder[1]) / 2;
+  const torso = addSphere(THREE, group, [0.62, 0.92, 0.54], [torsoX, torsoY, 0], materials.black);
+  torso.rotation.z = Math.atan2(setup.shoulder[1] - setup.hip[1], setup.shoulder[0] - setup.hip[0]) - Math.PI / 2;
+  addSphere(THREE, group, [0.54, 0.56, 0.52], [setup.head[0], setup.head[1], 0], helmetMaterial);
+  addSphere(THREE, group, [0.22, 0.24, 0.44], [setup.head[0] + 0.2, setup.head[1] + 0.02, 0], materials.glass);
+
+  [-1, 1].forEach((side) => {
+    const shoulder = [setup.shoulder[0], setup.shoulder[1], side * 0.19];
+    const elbow = [(setup.shoulder[0] + setup.handle[0]) / 2, setup.shoulder[1] - 0.18, side * 0.24];
+    const hand = [setup.handle[0], setup.handle[1], side * 0.19];
+    addTube(THREE, group, shoulder, elbow, 0.075, materials.black);
+    addTube(THREE, group, elbow, hand, 0.06, materials.cloth);
+
+    const hip = [setup.hip[0], setup.hip[1], side * 0.17];
+    const knee = [0.02, 0.95, side * 0.25];
+    const foot = [setup.foot[0], setup.foot[1], side * 0.2];
+    addTube(THREE, group, hip, knee, 0.1, materials.black);
+    addTube(THREE, group, knee, foot, 0.085, materials.black);
+    addSphere(THREE, group, [0.17, 0.11, 0.12], hand, materials.rubber);
+  });
+
   return group;
 }
 
@@ -1363,6 +1826,8 @@ function setupMountainCanvasFallback() {
   const heartsStat = document.querySelector("#gameHearts");
   const jumpsStat = document.querySelector("#gameJumps");
   const bestStat = document.querySelector("#gameBest");
+  const nitroText = document.querySelector("#gameNitroText");
+  const nitroFill = document.querySelector("#gameNitroFill");
   const startButton = document.querySelector("[data-game-start]");
   const restartButton = document.querySelector("[data-game-restart]");
   const rideButtons = [...document.querySelectorAll("[data-game-ride]")];
@@ -1408,6 +1873,7 @@ function setupMountainCanvasFallback() {
     jump: false,
     gas: false,
     brake: false,
+    nitro: false,
   };
 
   let width = 960;
@@ -1433,6 +1899,8 @@ function setupMountainCanvasFallback() {
     lights: 0,
     jumps: 0,
     hearts: 3,
+    nitro: 35,
+    nitroActive: false,
     speed: rideProfiles.activa.idleSpeed,
     bestScore: savedBest,
     jumpY: 0,
@@ -1479,6 +1947,7 @@ function setupMountainCanvasFallback() {
   }
 
   function updateStats() {
+    const nitroPercent = Math.round(state.nitro);
     if (scoreStat) scoreStat.textContent = formatScore(state.score);
     if (comboStat) comboStat.textContent = `${state.combo}x`;
     if (speedStat) speedStat.textContent = `${Math.round(state.speed * 0.32)} km/h`;
@@ -1487,12 +1956,16 @@ function setupMountainCanvasFallback() {
     if (heartsStat) heartsStat.textContent = String(state.hearts);
     if (jumpsStat) jumpsStat.textContent = String(state.jumps);
     if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
+    if (nitroText) nitroText.textContent = `${nitroPercent}%`;
+    if (nitroFill) nitroFill.style.transform = `scaleX(${Math.max(0, Math.min(1, state.nitro / 100))})`;
     if (gameRoot) {
+      gameRoot.classList.toggle("is-nitro", state.nitroActive);
       gameRoot.dataset.gameRunning = String(state.running);
       gameRoot.dataset.gameSpeed = String(Math.round(state.speed * 0.32));
       gameRoot.dataset.gameScore = String(Math.floor(state.score));
       gameRoot.dataset.gameDistance = state.scroll.toFixed(2);
       gameRoot.dataset.gameJumps = String(state.jumps);
+      gameRoot.dataset.gameNitro = String(nitroPercent);
     }
   }
 
@@ -1509,6 +1982,8 @@ function setupMountainCanvasFallback() {
     state.lights = 0;
     state.jumps = 0;
     state.hearts = 3;
+    state.nitro = 35;
+    state.nitroActive = false;
     state.speed = profile.idleSpeed;
     state.jumpY = 0;
     state.velocityY = 0;
@@ -1569,6 +2044,7 @@ function setupMountainCanvasFallback() {
   function pauseRide() {
     if (!state.running || state.over) return;
     state.running = false;
+    state.nitroActive = false;
     clearControls();
     setBadge("Ride paused");
     if (startButton) startButton.textContent = "Resume ride";
@@ -1583,6 +2059,7 @@ function setupMountainCanvasFallback() {
   function finishRide() {
     state.running = false;
     state.over = true;
+    state.nitroActive = false;
     clearControls();
     saveBest();
     setBadge(`Ride finished: ${formatScore(state.score)} pts`);
@@ -1666,11 +2143,19 @@ function setupMountainCanvasFallback() {
     const targetLean = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
     state.lean += (targetLean - state.lean) * Math.min(1, dt * 9);
 
-    const targetSpeed = controls.brake ? 0 : controls.gas ? profile.maxSpeed : profile.idleSpeed;
+    state.nitroActive = Boolean(controls.nitro && controls.gas && state.nitro > 0.4);
+    if (state.nitroActive) state.nitro = Math.max(0, state.nitro - dt * 23);
+    else state.nitro = Math.min(100, state.nitro + dt * 0.75);
+    const targetSpeed = controls.brake
+      ? 0
+      : controls.gas
+        ? profile.maxSpeed + (state.nitroActive ? 82 : 0)
+        : profile.idleSpeed;
     state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 3.5);
     state.scroll += state.speed * dt;
     state.distance = state.scroll / 520;
-    state.score += state.speed * dt * (controls.gas ? 0.12 : 0.085) * (1 + (state.combo - 1) * 0.12);
+    state.score +=
+      state.speed * dt * (controls.gas ? 0.12 : 0.085) * (state.nitroActive ? 1.35 : 1) * (1 + (state.combo - 1) * 0.12);
 
     if (state.jumpY < 0 || state.velocityY < 0) {
       state.jumpY += state.velocityY * dt;
@@ -1704,6 +2189,7 @@ function setupMountainCanvasFallback() {
         if (Math.hypot(dx, dy) < 46) {
           addScore(220 * state.combo, `memory light ${state.combo}x`);
           state.lights += 1;
+          state.nitro = Math.min(100, state.nitro + 18);
           buildCombo();
           addEffect(screenX, y, "#d8a64d");
           return false;
@@ -2065,8 +2551,8 @@ function setupMountainCanvasFallback() {
       KeyD: "right",
       ArrowUp: "gas",
       KeyW: "gas",
-      ShiftLeft: "gas",
-      ShiftRight: "gas",
+      ShiftLeft: "nitro",
+      ShiftRight: "nitro",
       ArrowDown: "brake",
       KeyS: "brake",
     };
@@ -2098,8 +2584,8 @@ function setupMountainCanvasFallback() {
       KeyD: "right",
       ArrowUp: "gas",
       KeyW: "gas",
-      ShiftLeft: "gas",
-      ShiftRight: "gas",
+      ShiftLeft: "nitro",
+      ShiftRight: "nitro",
       ArrowDown: "brake",
       KeyS: "brake",
     };

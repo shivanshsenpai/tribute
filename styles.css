@@ -635,6 +635,7 @@ a {
 .game-score-grid span {
   min-height: 62px;
   border: 1px solid var(--line);
+  border-top-color: rgba(239, 107, 27, 0.42);
   border-radius: 8px;
   padding: 0.72rem 0.8rem;
   background: rgba(248, 246, 240, 0.8);
@@ -661,7 +662,7 @@ a {
   grid-template-areas:
     ". gas ."
     "left brake right"
-    "jump jump jump";
+    "jump jump nitro";
   gap: 0.5rem;
 }
 
@@ -683,6 +684,58 @@ a {
 
 .control-jump {
   grid-area: jump;
+}
+
+.control-nitro {
+  grid-area: nitro;
+}
+
+.game-nitro {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.game-nitro strong {
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+
+.game-nitro-track {
+  height: 9px;
+  overflow: hidden;
+  border: 1px solid rgba(21, 21, 20, 0.18);
+  border-radius: 999px;
+  background: rgba(21, 21, 20, 0.1);
+}
+
+.game-nitro-track i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--orange), var(--gold));
+  box-shadow: 0 0 14px rgba(239, 107, 27, 0.58);
+  transform: scaleX(0.35);
+  transform-origin: left center;
+  transition: transform 120ms linear;
+}
+
+.mountain-game.is-nitro .game-shell {
+  box-shadow:
+    0 22px 70px rgba(16, 17, 15, 0.18),
+    0 0 0 2px rgba(239, 107, 27, 0.5),
+    0 0 38px rgba(239, 107, 27, 0.22);
+}
+
+.mountain-game.is-nitro .control-nitro {
+  background: var(--orange);
+  color: #fff;
 }
 
 .game-ride,
@@ -757,7 +810,7 @@ a {
 
 @media (min-width: 981px) {
   .game-shell {
-    height: 660px;
+    height: 700px;
   }
 
   .game-stage,
@@ -767,7 +820,7 @@ a {
 
   .game-panel {
     overflow-y: auto;
-    gap: 0.55rem;
+    gap: 0.5rem;
     padding: 0.75rem;
   }
 

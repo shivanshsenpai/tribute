@@ -218,6 +218,13 @@
               <button class="game-action" type="button" data-game-restart>Restart</button>
             </div>
 
+            <div class="game-nitro" aria-label="Nitro reserve">
+              <span><strong id="gameNitroText">35%</strong> nitro</span>
+              <div class="game-nitro-track" aria-hidden="true">
+                <i id="gameNitroFill"></i>
+              </div>
+            </div>
+
             <div class="game-controls" aria-label="3D game touch controls">
               <button class="control-gas" type="button" data-game-control="gas">
                 <kbd>W</kbd><span>Throttle</span>
@@ -234,12 +241,16 @@
               <button class="control-jump" type="button" data-game-control="jump">
                 <kbd>Space</kbd><span>Jump</span>
               </button>
+              <button class="control-nitro" type="button" data-game-control="nitro">
+                <kbd>Shift</kbd><span>Nitro</span>
+              </button>
             </div>
 
             <p class="game-help">
               Laptop: W to accelerate, S to brake, A/D to steer, Space to jump,
-              and P to pause. Arrow keys also work. Build a combo with lights,
-              boost pads, close passes, and clean landings.
+              Shift for nitro, and P to pause. Arrow keys also work. Memory
+              lights refill nitro; boost pads, checkpoints, close passes, and
+              clean landings build the combo.
             </p>
           </aside>
         </div>
