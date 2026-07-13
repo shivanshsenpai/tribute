@@ -567,7 +567,7 @@ a {
 
 .game-shell {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(360px, 0.75fr);
   gap: 1px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -583,6 +583,16 @@ a {
   background:
     radial-gradient(circle at 76% 18%, rgba(216, 166, 77, 0.22), transparent 18%),
     linear-gradient(180deg, #b8c4ba 0%, #8fa18e 48%, #536548 100%);
+}
+
+.game-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(13, 18, 13, 0.08), transparent 24%, transparent 72%, rgba(8, 10, 8, 0.2)),
+    radial-gradient(circle at center, transparent 55%, rgba(8, 10, 8, 0.18));
 }
 
 #mountainGameCanvas {
@@ -610,23 +620,23 @@ a {
 
 .game-panel {
   display: grid;
-  align-content: center;
-  gap: 1rem;
-  padding: clamp(1.1rem, 3vw, 2rem);
+  align-content: start;
+  gap: 0.72rem;
+  padding: clamp(1rem, 2vw, 1.4rem);
   background: var(--paper-strong);
 }
 
 .game-score-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.8rem;
+  gap: 0.52rem;
 }
 
 .game-score-grid span {
-  min-height: 88px;
+  min-height: 62px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 0.85rem;
+  padding: 0.72rem 0.8rem;
   background: rgba(248, 246, 240, 0.8);
   color: var(--muted);
 }
@@ -634,22 +644,51 @@ a {
 .game-score-grid strong {
   display: block;
   color: var(--ink);
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   line-height: 1.1;
 }
 
 .game-ride-picker,
-.game-actions,
-.game-controls {
+.game-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
 }
 
+.game-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas:
+    ". gas ."
+    "left brake right"
+    "jump jump jump";
+  gap: 0.5rem;
+}
+
+.control-gas {
+  grid-area: gas;
+}
+
+.control-left {
+  grid-area: left;
+}
+
+.control-brake {
+  grid-area: brake;
+}
+
+.control-right {
+  grid-area: right;
+}
+
+.control-jump {
+  grid-area: jump;
+}
+
 .game-ride,
 .game-action,
 .game-controls button {
-  min-height: 42px;
+  min-height: 38px;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 0.62rem 0.85rem;
@@ -658,6 +697,38 @@ a {
   cursor: pointer;
   font: inherit;
   font-weight: 900;
+}
+
+.game-controls button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.55rem 0.45rem;
+}
+
+.game-controls kbd {
+  display: grid;
+  min-width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-bottom-width: 3px;
+  border-radius: 5px;
+  padding: 0 0.35rem;
+  background: rgba(255, 255, 255, 0.28);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.game-controls span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.82rem;
 }
 
 .game-ride.is-active,
@@ -680,7 +751,35 @@ a {
 .game-help {
   margin: 0;
   color: var(--muted);
-  font-size: 0.92rem;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+@media (min-width: 981px) {
+  .game-shell {
+    height: 660px;
+  }
+
+  .game-stage,
+  #mountainGameCanvas {
+    min-height: 0;
+  }
+
+  .game-panel {
+    overflow-y: auto;
+    gap: 0.55rem;
+    padding: 0.75rem;
+  }
+
+  .game-score-grid span {
+    min-height: 58px;
+    padding: 0.55rem 0.7rem;
+  }
+
+  .game-help {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
 }
 
 .garage {
@@ -1287,13 +1386,13 @@ a {
     min-height: 380px;
   }
 
-  .game-score-grid,
-  .game-controls {
+  .game-score-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .game-controls {
     display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .game-controls button {

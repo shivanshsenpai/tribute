@@ -203,12 +203,15 @@ async function loadThreeModule() {
 function initMountainGame(THREE, canvas) {
   const stage = canvas.parentElement;
   const gameRoot = canvas.closest(".mountain-game");
+  if (gameRoot) gameRoot.dataset.gameRenderer = "webgl";
   const badge = document.querySelector("#gameStateBadge");
   const scoreStat = document.querySelector("#gameScore");
   const comboStat = document.querySelector("#gameCombo");
+  const speedStat = document.querySelector("#gameSpeed");
   const distanceStat = document.querySelector("#gameDistance");
   const lightsStat = document.querySelector("#gameLights");
   const heartsStat = document.querySelector("#gameHearts");
+  const jumpsStat = document.querySelector("#gameJumps");
   const bestStat = document.querySelector("#gameBest");
   const startButton = document.querySelector("[data-game-start]");
   const restartButton = document.querySelector("[data-game-restart]");
@@ -225,9 +228,14 @@ function initMountainGame(THREE, canvas) {
   });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.08;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0xb8c4ba, 1);
 
   const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xa9bbb0);
   scene.fog = new THREE.Fog(0xb8c4ba, 72, 170);
 
   const camera = new THREE.PerspectiveCamera(58, 1, 0.1, 280);
@@ -238,6 +246,14 @@ function initMountainGame(THREE, canvas) {
 
   const sun = new THREE.DirectionalLight(0xffd58a, 4.1);
   sun.position.set(-8, 14, 8);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(1024, 1024);
+  sun.shadow.camera.left = -24;
+  sun.shadow.camera.right = 24;
+  sun.shadow.camera.top = 24;
+  sun.shadow.camera.bottom = -18;
+  sun.shadow.camera.near = 1;
+  sun.shadow.camera.far = 80;
   scene.add(sun);
 
   const rim = new THREE.PointLight(0xef6b1b, 15, 35);
@@ -278,6 +294,13 @@ function initMountainGame(THREE, canvas) {
     roughness: 0.28,
     metalness: 0.08,
   });
+  const boostMaterial = new THREE.MeshStandardMaterial({
+    color: 0xf07818,
+    emissive: 0xb92720,
+    emissiveIntensity: 1.2,
+    roughness: 0.42,
+    metalness: 0.18,
+  });
 
   const roadWidth = 8.2;
   const roadSegments = 96;
@@ -290,7 +313,7 @@ function initMountainGame(THREE, canvas) {
   const roadIndices = [];
   for (let i = 0; i < roadSegments; i += 1) {
     const row = i * 2;
-    roadIndices.push(row, row + 2, row + 1, row + 1, row + 2, row + 3);
+    roadIndices.push(row, row + 1, row + 2, row + 1, row + 3, row + 2);
   }
   for (let i = 0; i <= roadSegments; i += 1) {
     const row = i * 4;
@@ -303,6 +326,7 @@ function initMountainGame(THREE, canvas) {
   roadGeometry.setAttribute("uv", new THREE.BufferAttribute(roadUvs, 2));
   roadGeometry.setIndex(roadIndices);
   const roadMesh = new THREE.Mesh(roadGeometry, roadMaterial);
+  roadMesh.receiveShadow = true;
   scene.add(roadMesh);
 
   const terrainGeometry = new THREE.BufferGeometry();
@@ -310,21 +334,21 @@ function initMountainGame(THREE, canvas) {
   const terrainIndices = [];
   for (let i = 0; i < roadSegments; i += 1) {
     const row = i * 4;
-    for (let j = 0; j < 3; j += 1) {
-      terrainIndices.push(row + j, row + j + 4, row + j + 1, row + j + 1, row + j + 4, row + j + 5);
-    }
+    terrainIndices.push(row, row + 1, row + 4, row + 1, row + 5, row + 4);
+    terrainIndices.push(row + 2, row + 3, row + 6, row + 3, row + 7, row + 6);
   }
   terrainGeometry.setAttribute("position", new THREE.BufferAttribute(terrainPositions, 3));
   terrainGeometry.setIndex(terrainIndices);
   const terrainMesh = new THREE.Mesh(terrainGeometry, shoulderMaterial);
+  terrainMesh.receiveShadow = true;
   scene.add(terrainMesh);
 
   const valleyFloor = new THREE.Mesh(
-    new THREE.PlaneGeometry(220, 240, 1, 1),
+    new THREE.PlaneGeometry(520, 640, 1, 1),
     new THREE.MeshStandardMaterial({ color: 0x6c7c60, roughness: 0.98, metalness: 0.01 })
   );
   valleyFloor.rotation.x = -Math.PI / 2;
-  valleyFloor.position.set(0, -7.0, -48);
+  valleyFloor.position.set(0, -7.0, -70);
   scene.add(valleyFloor);
 
   const dashMeshes = Array.from({ length: 26 }, () => {
@@ -400,10 +424,12 @@ function initMountainGame(THREE, canvas) {
   const rideProfiles = {
     activa: {
       name: "Activa",
-      baseSpeed: 10.5,
-      boost: 4.2,
-      steer: 5.0,
-      traction: 4.2,
+      idleSpeed: 5.4,
+      maxSpeed: 20.5,
+      acceleration: 8.8,
+      braking: 14.5,
+      steer: 15.2,
+      traction: 5.0,
       jump: 8.4,
       factory: createScooter,
       scale: 1.02,
@@ -411,10 +437,12 @@ function initMountainGame(THREE, canvas) {
     },
     yezdi: {
       name: "Yezdi",
-      baseSpeed: 12.2,
-      boost: 4.7,
-      steer: 4.6,
-      traction: 3.8,
+      idleSpeed: 5.8,
+      maxSpeed: 24.5,
+      acceleration: 11.2,
+      braking: 15.8,
+      steer: 14.2,
+      traction: 4.35,
       jump: 8.1,
       factory: createRoadster,
       scale: 1.02,
@@ -422,10 +450,12 @@ function initMountainGame(THREE, canvas) {
     },
     cbr: {
       name: "CBR",
-      baseSpeed: 14.2,
-      boost: 6.2,
-      steer: 5.7,
-      traction: 4.8,
+      idleSpeed: 6.2,
+      maxSpeed: 30.5,
+      acceleration: 14.6,
+      braking: 18.4,
+      steer: 17.2,
+      traction: 5.35,
       jump: 9.1,
       factory: createSportBike,
       scale: 1.02,
@@ -438,19 +468,23 @@ function initMountainGame(THREE, canvas) {
     right: false,
     jump: false,
     gas: false,
+    brake: false,
   };
 
   const state = {
     ride: "activa",
     running: false,
     over: false,
+    hasStarted: false,
     distance: 0,
-    speed: rideProfiles.activa.baseSpeed,
+    speed: rideProfiles.activa.idleSpeed,
     lane: 0,
     lateralVelocity: 0,
     lean: 0,
     jumpY: 0,
     jumpVelocity: 0,
+    jumpCooldown: 0,
+    airTime: 0,
     suspension: 0,
     landingKick: 0,
     score: 0,
@@ -458,9 +492,14 @@ function initMountainGame(THREE, canvas) {
     comboTimer: 0,
     nearMisses: 0,
     lights: 0,
+    jumps: 0,
     hearts: 3,
+    boostTimer: 0,
+    crashTimer: 0,
+    offRoad: 0,
     bestScore: 0,
     nextSpawn: 38,
+    lastSpawnType: "light",
     messageTimer: 0,
     flash: 0,
     lastTime: 0,
@@ -527,10 +566,21 @@ function initMountainGame(THREE, canvas) {
     const km = state.distance / 42;
     if (scoreStat) scoreStat.textContent = formatScore(state.score);
     if (comboStat) comboStat.textContent = `${state.combo}x`;
+    if (speedStat) speedStat.textContent = `${Math.round(state.speed * 3.25)} km/h`;
     if (distanceStat) distanceStat.textContent = formatKm(km);
     if (lightsStat) lightsStat.textContent = String(state.lights);
     if (heartsStat) heartsStat.textContent = String(state.hearts);
+    if (jumpsStat) jumpsStat.textContent = String(state.jumps);
     if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
+    if (gameRoot) {
+      gameRoot.dataset.gameRunning = String(state.running);
+      gameRoot.dataset.gameSpeed = String(Math.round(state.speed * 3.25));
+      gameRoot.dataset.gameScore = String(Math.floor(state.score));
+      gameRoot.dataset.gameDistance = state.distance.toFixed(2);
+      gameRoot.dataset.gameLane = state.lane.toFixed(3);
+      gameRoot.dataset.gameJumps = String(state.jumps);
+      gameRoot.dataset.gameOffRoad = state.offRoad.toFixed(3);
+    }
   }
 
   function saveBest() {
@@ -579,6 +629,11 @@ function initMountainGame(THREE, canvas) {
     player = profile.factory(THREE, materials);
     player.scale.setScalar(profile.scale);
     player.rotation.y = Math.PI / 2;
+    player.traverse((child) => {
+      if (!child.isMesh) return;
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
     player.userData.lights?.forEach((light) => {
       light.intensity = 0.9;
       light.distance = 4;
@@ -595,13 +650,16 @@ function initMountainGame(THREE, canvas) {
     saveBest();
     state.running = false;
     state.over = false;
+    state.hasStarted = false;
     state.distance = 0;
-    state.speed = rideProfiles[state.ride].baseSpeed;
+    state.speed = rideProfiles[state.ride].idleSpeed;
     state.lane = 0;
     state.lateralVelocity = 0;
     state.lean = 0;
     state.jumpY = 0;
     state.jumpVelocity = 0;
+    state.jumpCooldown = 0;
+    state.airTime = 0;
     state.suspension = 0;
     state.landingKick = 0;
     state.score = 0;
@@ -609,15 +667,20 @@ function initMountainGame(THREE, canvas) {
     state.comboTimer = 0;
     state.nearMisses = 0;
     state.lights = 0;
+    state.jumps = 0;
     state.hearts = 3;
+    state.boostTimer = 0;
+    state.crashTimer = 0;
+    state.offRoad = 0;
     state.nextSpawn = 38;
+    state.lastSpawnType = "light";
     state.flash = 0;
     state.obstacles.forEach((item) => scene.remove(item.mesh));
     state.rings.forEach((ring) => scene.remove(ring));
     state.obstacles = [];
     state.rings = [];
     if (startButton) startButton.textContent = "Start ride";
-    setBadge("Ready for the 3D hill road");
+    setBadge("Press W to throttle and Space to jump");
     updateStats();
   }
 
@@ -638,14 +701,31 @@ function initMountainGame(THREE, canvas) {
     if (state.running) return;
     if (state.over) resetGame();
     state.running = true;
+    state.hasStarted = true;
     canvas.focus({ preventScroll: true });
-    if (startButton) startButton.textContent = "Riding";
-    setBadge(`${rideProfiles[state.ride].name} is climbing`);
+    if (startButton) startButton.textContent = "Pause";
+    setBadge(`${rideProfiles[state.ride].name} is rolling - hold W for speed`);
+    updateStats();
+  }
+
+  function pauseRide() {
+    if (!state.running || state.over) return;
+    state.running = false;
+    clearControls();
+    if (startButton) startButton.textContent = "Resume ride";
+    setBadge("Ride paused");
+    updateStats();
+  }
+
+  function toggleRide() {
+    if (state.running) pauseRide();
+    else startRide();
   }
 
   function finishRide() {
     state.running = false;
     state.over = true;
+    clearControls();
     saveBest();
     if (startButton) startButton.textContent = "Start ride";
     setBadge(`Ride finished: ${formatScore(state.score)} pts`);
@@ -658,9 +738,13 @@ function initMountainGame(THREE, canvas) {
   }
 
   function jumpBike() {
-    if (!state.running || state.over || state.jumpY > 0.04) return;
-    state.jumpVelocity = rideProfiles[state.ride].jump;
-    addScore(40 * state.combo, "clean hop");
+    if (!state.running || state.over || state.jumpY > 0.04 || state.jumpCooldown > 0 || state.speed < 2.5) return;
+    const profile = rideProfiles[state.ride];
+    const speedLift = 0.78 + (state.speed / profile.maxSpeed) * 0.26;
+    state.jumpVelocity = profile.jump * speedLift;
+    state.jumpCooldown = 0.38;
+    state.airTime = 0;
+    setBadge("Airborne");
   }
 
   function setControl(control, active) {
@@ -696,14 +780,39 @@ function initMountainGame(THREE, canvas) {
     return { type: "light", worldS, lane, mesh: group, hit: false };
   }
 
+  function createBoostPad(worldS, lane) {
+    const group = new THREE.Group();
+    const base = new THREE.Mesh(new THREE.BoxGeometry(1.45, 0.08, 2.25), boostMaterial);
+    base.receiveShadow = true;
+    group.add(base);
+    for (let index = -1; index <= 1; index += 1) {
+      const stripe = new THREE.Mesh(
+        new THREE.BoxGeometry(0.18, 0.035, 1.45),
+        new THREE.MeshBasicMaterial({ color: 0xffd58a })
+      );
+      stripe.position.set(index * 0.38, 0.07, -0.08);
+      stripe.rotation.y = -0.28;
+      group.add(stripe);
+    }
+    return { type: "boost", worldS, lane, mesh: group, hit: false };
+  }
+
   function spawnObjects() {
     while (state.nextSpawn < state.distance + 96) {
       const lane = randomBetween(-roadWidth * 0.33, roadWidth * 0.33);
+      const roll = Math.random();
+      let type = roll < 0.48 ? "light" : roll < 0.82 ? "rock" : "boost";
+      if (type === "rock" && state.lastSpawnType === "rock") type = Math.random() < 0.65 ? "light" : "boost";
       const item =
-        Math.random() < 0.58 ? createLight(state.nextSpawn, lane) : createRock(state.nextSpawn, lane);
+        type === "light"
+          ? createLight(state.nextSpawn, lane)
+          : type === "rock"
+            ? createRock(state.nextSpawn, lane)
+            : createBoostPad(state.nextSpawn, lane);
       scene.add(item.mesh);
       state.obstacles.push(item);
-      state.nextSpawn += randomBetween(8, 15);
+      state.lastSpawnType = type;
+      state.nextSpawn += randomBetween(11, 18);
     }
   }
 
@@ -835,9 +944,17 @@ function initMountainGame(THREE, canvas) {
       if (item.type === "light") {
         item.mesh.position.y += 1.35 + Math.sin(performance.now() * 0.004 + item.worldS) * 0.18;
         item.mesh.rotation.y += dt * 2.5;
-      } else {
+      } else if (item.type === "rock") {
         item.mesh.position.y += 0.34;
         item.mesh.rotation.x += dt * 0.7;
+      } else {
+        item.mesh.position.y += 0.08;
+        item.mesh.rotation.set(-roadSlope(item.worldS, item.lane), roadHeading(item.worldS) * 0.18, -roadBank(item.worldS));
+        item.mesh.children.forEach((child) => {
+          if (child.material?.emissiveIntensity !== undefined) {
+            child.material.emissiveIntensity = 1.05 + Math.sin(performance.now() * 0.008) * 0.35;
+          }
+        });
       }
 
       const behind = item.worldS < state.distance - 16;
@@ -860,10 +977,24 @@ function initMountainGame(THREE, canvas) {
           return false;
         }
 
-        if (state.jumpY < 0.65) {
+        if (item.type === "boost" && state.jumpY < 0.5) {
+          item.hit = true;
+          state.boostTimer = 3.2;
+          state.speed = Math.min(rideProfiles[state.ride].maxSpeed + 5, state.speed + 4.5);
+          addScore(180 * state.combo, "road boost");
+          buildCombo();
+          addRing(item.mesh.position, 0xef6b1b);
+          scene.remove(item.mesh);
+          return false;
+        }
+
+        if (item.type === "rock" && state.jumpY < 0.65 && state.crashTimer <= 0) {
           item.hit = true;
           state.hearts -= 1;
           state.flash = 1;
+          state.crashTimer = 1.15;
+          state.speed *= 0.44;
+          state.lateralVelocity += state.lane <= item.lane ? -1.4 : 1.4;
           const penalty = applyRockPenalty();
           addRing(item.mesh.position, 0xb92720);
           setBadge(state.hearts > 0 ? `Rock hit: -${formatScore(penalty)}` : "Ride needs a restart");
@@ -878,6 +1009,7 @@ function initMountainGame(THREE, canvas) {
         state.nearMisses += 1;
         const reason = closeLane ? "clean rock hop" : "near miss";
         addScore((closeLane ? 260 : 140) * state.combo, reason);
+        buildCombo();
         addRing(item.mesh.position, closeLane ? 0xd8a64d : 0xf8f6f0);
       }
 
@@ -901,29 +1033,43 @@ function initMountainGame(THREE, canvas) {
     const steer = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
     const worldS = state.distance - 2.2;
     const bank = roadBank(worldS);
-    const maxLane = roadWidth * 0.34;
-    const desiredLateral = steer * profile.steer - bank * 4.4 - state.lane * 0.82;
-    state.lateralVelocity += (desiredLateral - state.lateralVelocity) * Math.min(1, dt * profile.traction);
-    state.lateralVelocity *= 1 - Math.min(0.45, dt * 0.9);
+    const maxLane = roadWidth * 0.46;
+    const roadEdge = roadWidth * 0.39;
+    const speedRatio = clamp(state.speed / profile.maxSpeed, 0, 1.25);
+    const steeringForce = profile.steer * (0.5 + speedRatio * 0.68) * (1 - state.offRoad * 0.3);
+    state.lateralVelocity += (steer * steeringForce - bank * state.speed * 0.13) * dt;
+    const grip = profile.traction * (steer === 0 ? 1.05 : 0.58);
+    state.lateralVelocity *= Math.exp(-grip * dt);
+    state.lateralVelocity = clamp(state.lateralVelocity, -5.2, 5.2);
     state.lane += state.lateralVelocity * dt;
 
     if (Math.abs(state.lane) > maxLane) {
       state.lane = clamp(state.lane, -maxLane, maxLane);
-      state.lateralVelocity *= -0.22;
-      state.flash = Math.max(state.flash, 0.18);
+      state.lateralVelocity *= -0.3;
+      state.flash = Math.max(state.flash, 0.12);
     }
 
-    const leanTarget = steer * 0.82 + state.lateralVelocity * 0.13 + bank * 2.8;
-    state.lean += (leanTarget - state.lean) * Math.min(1, dt * 7.5);
+    state.offRoad = clamp((Math.abs(state.lane) - roadEdge) / Math.max(0.01, maxLane - roadEdge), 0, 1);
+
+    const leanTarget = clamp(steer * (0.48 + speedRatio * 0.34) + state.lateralVelocity * 0.11 + bank * 2.6, -1.15, 1.15);
+    state.lean += (leanTarget - state.lean) * Math.min(1, dt * 8.2);
 
     if (state.jumpY > 0 || state.jumpVelocity > 0) {
+      state.airTime += dt;
       state.jumpY += state.jumpVelocity * dt;
-      state.jumpVelocity -= 16.5 * dt;
+      state.jumpVelocity -= 18.2 * dt;
       if (state.jumpY < 0) {
+        const landingAirTime = state.airTime;
         state.jumpY = 0;
         state.jumpVelocity = 0;
+        state.airTime = 0;
         state.landingKick = 1;
-        state.suspension = 0.18;
+        state.suspension = clamp(landingAirTime * 0.24, 0.12, 0.28);
+        state.jumps += 1;
+        if (landingAirTime > 0.48) {
+          addScore((70 + state.speed * 2.2) * state.combo, "smooth landing");
+          buildCombo();
+        }
       }
     }
 
@@ -933,48 +1079,73 @@ function initMountainGame(THREE, canvas) {
     const road = roadPoint(worldS, state.lane);
     const pitch = roadSlope(worldS, state.lane);
     const heading = roadHeading(worldS);
-    player.position.set(road.x, road.y + profile.yOffset + state.jumpY - state.suspension, road.z);
+    const roadBuzz = Math.sin(state.distance * 5.2) * Math.min(0.018, state.speed * 0.0008);
+    player.position.set(road.x, road.y + profile.yOffset + state.jumpY - state.suspension + roadBuzz, road.z);
     player.rotation.x = -pitch;
     player.rotation.y = Math.PI / 2 - heading * 0.65 + state.lean * 0.08;
-    player.rotation.z = -state.lean * 0.36 - bank * 0.82;
+    player.rotation.z = -state.lean * 0.38 - bank * 0.82 + (state.crashTimer > 0 ? Math.sin(performance.now() * 0.028) * 0.035 : 0);
     player.userData.wheels?.forEach((wheel) => {
       wheel.rotation.z -= state.speed * dt * 1.2;
     });
 
+    playerLight.intensity = 7 + speedRatio * 3;
     playerLight.position.set(road.x, road.y + 1.65 + state.jumpY, road.z - 1.6);
   }
 
   function updateCamera(dt) {
+    const profile = rideProfiles[state.ride];
+    const speedRatio = clamp(state.speed / profile.maxSpeed, 0, 1.25);
     const bikeWorldS = state.distance - 2.2;
     const bikePoint = roadPoint(bikeWorldS, state.lane);
-    const lookWorld = bikeWorldS + 22;
+    const lookWorld = bikeWorldS + 20 + speedRatio * 8;
     const lookPoint = roadPoint(lookWorld, state.lane * 0.18);
     const heading = roadHeading(bikeWorldS);
+    const shake = state.crashTimer > 0 ? state.crashTimer * 0.12 : state.offRoad * 0.035;
     const targetCamera = new THREE.Vector3(
-      bikePoint.x - state.lane * 0.34 - heading * 4.2,
-      bikePoint.y + 4.05 + state.jumpY * 0.38 + state.landingKick * 0.18,
-      bikePoint.z + 12.25
+      bikePoint.x - state.lane * 0.31 - heading * 4.2 + Math.sin(performance.now() * 0.03) * shake,
+      bikePoint.y + 3.75 + speedRatio * 0.48 + state.jumpY * 0.38 + state.landingKick * 0.18,
+      bikePoint.z + 11.4 + speedRatio * 1.8
     );
     camera.position.lerp(targetCamera, Math.min(1, dt * 5.8));
     camera.lookAt(lookPoint.x, lookPoint.y + 0.86, lookPoint.z);
+    camera.rotation.z += (-state.lean * 0.025 - roadBank(bikeWorldS) * 0.16 - camera.rotation.z) * Math.min(1, dt * 4.8);
+    const targetFov = 56 + speedRatio * 6 + (state.boostTimer > 0 ? 3 : 0);
+    camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 3.8);
+    camera.updateProjectionMatrix();
   }
 
   function updateGame(dt) {
     const profile = rideProfiles[state.ride];
     const roadPitch = roadSlope(state.distance + 4, 0);
-    const gradeDrag = clamp(roadPitch * 3.4, -1.2, 1.7);
-    const targetSpeed = profile.baseSpeed + (controls.gas ? profile.boost : 0) + Math.min(state.distance / 42, 3.6) - gradeDrag;
-    state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 2.9);
-    state.speed = Math.max(profile.baseSpeed * 0.68, state.speed);
+    const throttle = controls.gas && !controls.brake ? 1 : 0;
+    const brake = controls.brake ? 1 : 0;
+    const speedRatio = clamp(state.speed / profile.maxSpeed, 0, 1.35);
+    const engineDrive = throttle ? profile.acceleration * (1 - speedRatio * 0.42) : 0;
+    const idleDrive = !brake && state.speed < profile.idleSpeed ? (profile.idleSpeed - state.speed) * 1.7 : 0;
+    const brakeForce = brake ? profile.braking * clamp(state.speed / 4, 0.28, 1) : 0;
+    const rollingDrag = 0.72 + state.speed * 0.032 + state.offRoad * (6.5 + state.speed * 0.18);
+    const gradeForce = -Math.sin(roadPitch) * 8.8;
+    const boostForce = state.boostTimer > 0 ? 5.6 : 0;
+    state.speed += (engineDrive + idleDrive + gradeForce + boostForce - brakeForce - rollingDrag) * dt;
+    const maxSpeed = profile.maxSpeed + (state.boostTimer > 0 ? 5.5 : 0);
+    state.speed = clamp(state.speed, 0, maxSpeed);
     state.distance += state.speed * dt;
-    state.score += state.speed * dt * (controls.gas ? 7.5 : 5.4) * (1 + (state.combo - 1) * 0.12);
+    state.score += state.speed * dt * (throttle ? 4.2 : 2.8) * (1 + (state.combo - 1) * 0.12);
+    state.boostTimer = Math.max(0, state.boostTimer - dt);
+    state.crashTimer = Math.max(0, state.crashTimer - dt);
+    state.jumpCooldown = Math.max(0, state.jumpCooldown - dt);
     state.flash = Math.max(0, state.flash - dt * 2.8);
     if (state.comboTimer > 0) {
       state.comboTimer -= dt;
       if (state.comboTimer <= 0) reduceCombo();
     }
     if (state.messageTimer > 0) state.messageTimer -= dt;
-    if (state.messageTimer <= 0 && badge && state.running) badge.textContent = "3D hill road running";
+    if (state.messageTimer <= 0 && badge && state.running) {
+      if (state.boostTimer > 0) badge.textContent = `BOOST | ${Math.round(state.speed * 3.25)} km/h`;
+      else if (state.speed < 2) badge.textContent = "Hold W to accelerate";
+      else if (state.offRoad > 0.2) badge.textContent = "Ease back onto the road";
+      else badge.textContent = `${Math.round(state.speed * 3.25)} km/h | ${state.combo}x combo`;
+    }
 
     updateRoadMesh();
     updateTrees();
@@ -1028,7 +1199,7 @@ function initMountainGame(THREE, canvas) {
     requestAnimationFrame(animate);
   }
 
-  startButton?.addEventListener("click", startRide);
+  startButton?.addEventListener("click", toggleRide);
   restartButton?.addEventListener("click", restartRide);
   rideButtons.forEach((button) => {
     button.addEventListener("click", () => setRide(button.dataset.gameRide));
@@ -1062,9 +1233,12 @@ function initMountainGame(THREE, canvas) {
       KeyA: "left",
       ArrowRight: "right",
       KeyD: "right",
+      ArrowUp: "gas",
+      KeyW: "gas",
       ShiftLeft: "gas",
       ShiftRight: "gas",
-      ArrowDown: "gas",
+      ArrowDown: "brake",
+      KeyS: "brake",
     };
     const control = map[event.code];
     if (control) {
@@ -1072,11 +1246,15 @@ function initMountainGame(THREE, canvas) {
       if (!state.running) startRide();
       setControl(control, true);
     }
-    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+    if (event.code === "Space") {
       event.preventDefault();
       if (!state.running) startRide();
       setControl("jump", true);
       if (!event.repeat) jumpBike();
+    }
+    if (event.code === "KeyP" && !event.repeat) {
+      event.preventDefault();
+      toggleRide();
     }
   });
 
@@ -1087,16 +1265,19 @@ function initMountainGame(THREE, canvas) {
       KeyA: "left",
       ArrowRight: "right",
       KeyD: "right",
+      ArrowUp: "gas",
+      KeyW: "gas",
       ShiftLeft: "gas",
       ShiftRight: "gas",
-      ArrowDown: "gas",
+      ArrowDown: "brake",
+      KeyS: "brake",
     };
     const control = map[event.code];
     if (control) {
       event.preventDefault();
       setControl(control, false);
     }
-    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+    if (event.code === "Space") {
       event.preventDefault();
       setControl("jump", false);
     }
@@ -1172,12 +1353,15 @@ function setupMountainCanvasFallback() {
   if (!ctx) return;
 
   const gameRoot = canvas.closest(".mountain-game");
+  if (gameRoot) gameRoot.dataset.gameRenderer = "canvas-2d";
   const badge = document.querySelector("#gameStateBadge");
   const scoreStat = document.querySelector("#gameScore");
   const comboStat = document.querySelector("#gameCombo");
+  const speedStat = document.querySelector("#gameSpeed");
   const distanceStat = document.querySelector("#gameDistance");
   const lightsStat = document.querySelector("#gameLights");
   const heartsStat = document.querySelector("#gameHearts");
+  const jumpsStat = document.querySelector("#gameJumps");
   const bestStat = document.querySelector("#gameBest");
   const startButton = document.querySelector("[data-game-start]");
   const restartButton = document.querySelector("[data-game-restart]");
@@ -1188,8 +1372,8 @@ function setupMountainCanvasFallback() {
   const rideProfiles = {
     activa: {
       name: "Activa",
-      baseSpeed: 176,
-      boost: 58,
+      idleSpeed: 88,
+      maxSpeed: 234,
       jump: 510,
       gravity: 1480,
       body: "#20201d",
@@ -1198,8 +1382,8 @@ function setupMountainCanvasFallback() {
     },
     yezdi: {
       name: "Yezdi",
-      baseSpeed: 194,
-      boost: 66,
+      idleSpeed: 92,
+      maxSpeed: 260,
       jump: 485,
       gravity: 1520,
       body: "#263f31",
@@ -1208,8 +1392,8 @@ function setupMountainCanvasFallback() {
     },
     cbr: {
       name: "CBR",
-      baseSpeed: 218,
-      boost: 86,
+      idleSpeed: 98,
+      maxSpeed: 304,
       jump: 540,
       gravity: 1560,
       body: "#ef6b1b",
@@ -1223,6 +1407,7 @@ function setupMountainCanvasFallback() {
     right: false,
     jump: false,
     gas: false,
+    brake: false,
   };
 
   let width = 960;
@@ -1246,8 +1431,9 @@ function setupMountainCanvasFallback() {
     combo: 1,
     comboTimer: 0,
     lights: 0,
+    jumps: 0,
     hearts: 3,
-    speed: rideProfiles.activa.baseSpeed,
+    speed: rideProfiles.activa.idleSpeed,
     bestScore: savedBest,
     jumpY: 0,
     velocityY: 0,
@@ -1295,10 +1481,19 @@ function setupMountainCanvasFallback() {
   function updateStats() {
     if (scoreStat) scoreStat.textContent = formatScore(state.score);
     if (comboStat) comboStat.textContent = `${state.combo}x`;
+    if (speedStat) speedStat.textContent = `${Math.round(state.speed * 0.32)} km/h`;
     if (distanceStat) distanceStat.textContent = formatKm(state.distance);
     if (lightsStat) lightsStat.textContent = String(state.lights);
     if (heartsStat) heartsStat.textContent = String(state.hearts);
+    if (jumpsStat) jumpsStat.textContent = String(state.jumps);
     if (bestStat) bestStat.textContent = formatScore(Math.max(state.bestScore, state.score));
+    if (gameRoot) {
+      gameRoot.dataset.gameRunning = String(state.running);
+      gameRoot.dataset.gameSpeed = String(Math.round(state.speed * 0.32));
+      gameRoot.dataset.gameScore = String(Math.floor(state.score));
+      gameRoot.dataset.gameDistance = state.scroll.toFixed(2);
+      gameRoot.dataset.gameJumps = String(state.jumps);
+    }
   }
 
   function resetGame() {
@@ -1312,8 +1507,9 @@ function setupMountainCanvasFallback() {
     state.combo = 1;
     state.comboTimer = 0;
     state.lights = 0;
+    state.jumps = 0;
     state.hearts = 3;
-    state.speed = profile.baseSpeed;
+    state.speed = profile.idleSpeed;
     state.jumpY = 0;
     state.velocityY = 0;
     state.lean = 0;
@@ -1321,7 +1517,7 @@ function setupMountainCanvasFallback() {
     state.effects = [];
     state.spawnAt = width + 360;
     state.flash = 0;
-    setBadge("Ready for the climb");
+    setBadge("Press W to throttle and Space to jump");
     if (startButton) startButton.textContent = "Start ride";
     updateStats();
   }
@@ -1365,13 +1561,29 @@ function setupMountainCanvasFallback() {
     if (state.over) resetGame();
     state.running = true;
     canvas.focus({ preventScroll: true });
-    setBadge(`${rideProfiles[state.ride].name} climb running`);
-    if (startButton) startButton.textContent = "Riding";
+    setBadge(`${rideProfiles[state.ride].name} is rolling - hold W for speed`);
+    if (startButton) startButton.textContent = "Pause";
+    updateStats();
+  }
+
+  function pauseRide() {
+    if (!state.running || state.over) return;
+    state.running = false;
+    clearControls();
+    setBadge("Ride paused");
+    if (startButton) startButton.textContent = "Resume ride";
+    updateStats();
+  }
+
+  function toggleRide() {
+    if (state.running) pauseRide();
+    else startRide();
   }
 
   function finishRide() {
     state.running = false;
     state.over = true;
+    clearControls();
     saveBest();
     setBadge(`Ride finished: ${formatScore(state.score)} pts`);
     if (startButton) startButton.textContent = "Start ride";
@@ -1454,7 +1666,7 @@ function setupMountainCanvasFallback() {
     const targetLean = (controls.right ? 1 : 0) - (controls.left ? 1 : 0);
     state.lean += (targetLean - state.lean) * Math.min(1, dt * 9);
 
-    const targetSpeed = profile.baseSpeed + (controls.gas ? profile.boost : 0) + Math.min(state.distance * 8, 82);
+    const targetSpeed = controls.brake ? 0 : controls.gas ? profile.maxSpeed : profile.idleSpeed;
     state.speed += (targetSpeed - state.speed) * Math.min(1, dt * 3.5);
     state.scroll += state.speed * dt;
     state.distance = state.scroll / 520;
@@ -1466,6 +1678,9 @@ function setupMountainCanvasFallback() {
       if (state.jumpY > 0) {
         state.jumpY = 0;
         state.velocityY = 0;
+        state.jumps += 1;
+        addScore(70 * state.combo, "smooth landing");
+        buildCombo();
       }
     }
 
@@ -1811,7 +2026,7 @@ function setupMountainCanvasFallback() {
     requestAnimationFrame(tick);
   }
 
-  startButton?.addEventListener("click", startRide);
+  startButton?.addEventListener("click", toggleRide);
   restartButton?.addEventListener("click", restartRide);
 
   rideButtons.forEach((button) => {
@@ -1848,9 +2063,12 @@ function setupMountainCanvasFallback() {
       KeyA: "left",
       ArrowRight: "right",
       KeyD: "right",
+      ArrowUp: "gas",
+      KeyW: "gas",
       ShiftLeft: "gas",
       ShiftRight: "gas",
-      ArrowDown: "gas",
+      ArrowDown: "brake",
+      KeyS: "brake",
     };
     const control = map[event.code];
     if (control) {
@@ -1858,11 +2076,15 @@ function setupMountainCanvasFallback() {
       if (!state.running) startRide();
       setControl(control, true);
     }
-    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+    if (event.code === "Space") {
       event.preventDefault();
       if (!state.running) startRide();
       setControl("jump", true);
       if (!event.repeat) jumpBike();
+    }
+    if (event.code === "KeyP" && !event.repeat) {
+      event.preventDefault();
+      toggleRide();
     }
   });
 
@@ -1874,16 +2096,19 @@ function setupMountainCanvasFallback() {
       KeyA: "left",
       ArrowRight: "right",
       KeyD: "right",
+      ArrowUp: "gas",
+      KeyW: "gas",
       ShiftLeft: "gas",
       ShiftRight: "gas",
-      ArrowDown: "gas",
+      ArrowDown: "brake",
+      KeyS: "brake",
     };
     const control = map[event.code];
     if (control) {
       event.preventDefault();
       setControl(control, false);
     }
-    if (event.code === "Space" || event.code === "ArrowUp" || event.code === "KeyW") {
+    if (event.code === "Space") {
       event.preventDefault();
       setControl("jump", false);
     }
