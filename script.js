@@ -9,6 +9,7 @@ setupActivityBoard();
 loadMountainGame();
 setupMemoryButtons();
 setupLightbox();
+setupFinaleCelebration();
 loadGarage();
 
 function setupReveal() {
@@ -2680,6 +2681,87 @@ function setupLightbox() {
     if (event.key === "ArrowLeft") showPhoto(activeIndex - 1);
     if (event.key === "ArrowRight") showPhoto(activeIndex + 1);
   });
+}
+
+function setupFinaleCelebration() {
+  const trigger = document.querySelector("#tributeFinaleTrigger");
+  const dialog = document.querySelector("#tributeFinale");
+  const confettiLayer = document.querySelector("#tributeConfetti");
+  const openers = [...document.querySelectorAll("[data-finale-open]")];
+  const closer = document.querySelector("[data-finale-close]");
+  if (!trigger || !dialog || !confettiLayer || openers.length === 0) return;
+
+  const colors = ["#ef6b1b", "#d8a64d", "#f8f6f0", "#355847", "#b92720"];
+  let hasCelebrated = false;
+  let clearTimer;
+  let observer;
+
+  const clearConfetti = () => {
+    window.clearTimeout(clearTimer);
+    confettiLayer.replaceChildren();
+  };
+
+  const launchConfetti = () => {
+    clearConfetti();
+    if (reducedMotion) return;
+
+    const fragment = document.createDocumentFragment();
+    const pieceCount = window.innerWidth < 640 ? 54 : 90;
+
+    for (let index = 0; index < pieceCount; index += 1) {
+      const piece = document.createElement("i");
+      const size = 7 + Math.random() * 9;
+      piece.className = `confetti-piece${index % 6 === 0 ? " is-round" : ""}`;
+      piece.style.setProperty("--x", `${Math.random() * 100}%`);
+      piece.style.setProperty("--size", `${size}px`);
+      piece.style.setProperty("--drift", `${-110 + Math.random() * 220}px`);
+      piece.style.setProperty("--spin", `${360 + Math.random() * 900}deg`);
+      piece.style.setProperty("--delay", `${Math.random() * 0.55}s`);
+      piece.style.setProperty("--duration", `${2.8 + Math.random() * 1.5}s`);
+      piece.style.backgroundColor = colors[index % colors.length];
+      fragment.appendChild(piece);
+    }
+
+    confettiLayer.appendChild(fragment);
+    clearTimer = window.setTimeout(clearConfetti, 4800);
+  };
+
+  const openCelebration = () => {
+    hasCelebrated = true;
+    observer?.disconnect();
+
+    if (!dialog.open) {
+      if (typeof dialog.showModal === "function") dialog.showModal();
+      else dialog.setAttribute("open", "");
+    }
+
+    launchConfetti();
+  };
+
+  const closeCelebration = () => {
+    if (dialog.open && typeof dialog.close === "function") dialog.close();
+    else dialog.removeAttribute("open");
+  };
+
+  openers.forEach((opener) => opener.addEventListener("click", openCelebration));
+  closer?.addEventListener("click", closeCelebration);
+  dialog.addEventListener("click", (event) => {
+    if (event.target === dialog) closeCelebration();
+  });
+  dialog.addEventListener("close", clearConfetti);
+
+  if ("IntersectionObserver" in window) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        if (hasCelebrated || !entries.some((entry) => entry.isIntersecting)) return;
+        hasCelebrated = true;
+        observer.disconnect();
+        window.setTimeout(openCelebration, reducedMotion ? 0 : 380);
+      },
+      { threshold: 0.45 }
+    );
+    observer.observe(trigger);
+  }
 }
 
 async function loadGarage() {

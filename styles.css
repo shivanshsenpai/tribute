@@ -1264,6 +1264,211 @@ a {
   color: rgba(255, 255, 255, 0.76);
 }
 
+.tribute-finale {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+  align-items: center;
+  gap: clamp(2.5rem, 7vw, 7rem);
+  min-height: 430px;
+  padding: clamp(4.5rem, 8vw, 7rem) max(1.25rem, calc((100vw - 1180px) / 2));
+  overflow: hidden;
+  background: #edf0e9;
+  border-top: 1px solid var(--line);
+}
+
+.tribute-finale::after {
+  content: "";
+  position: absolute;
+  right: -5rem;
+  bottom: -8rem;
+  width: 22rem;
+  aspect-ratio: 1;
+  border: 5rem solid rgba(53, 88, 71, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.tribute-finale-copy {
+  position: relative;
+  z-index: 1;
+  max-width: 36rem;
+}
+
+.tribute-finale-copy h2 {
+  max-width: 11ch;
+  margin: 0.4rem 0 1rem;
+  font-size: clamp(2.4rem, 4.5vw, 4.25rem);
+  line-height: 0.98;
+}
+
+.tribute-finale-copy > p:not(.section-label) {
+  max-width: 54ch;
+  margin: 0 0 1.6rem;
+  color: var(--muted);
+}
+
+.tribute-celebrate,
+.tribute-dialog-close {
+  min-height: 48px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.78rem 1.1rem;
+  background: var(--orange);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.tribute-celebrate:hover,
+.tribute-celebrate:focus-visible,
+.tribute-dialog-close:hover,
+.tribute-dialog-close:focus-visible {
+  transform: translateY(-2px);
+  background: #d95a0c;
+  box-shadow: 0 12px 26px rgba(185, 39, 32, 0.2);
+}
+
+.tribute-finale-mark {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(34px, 1fr) auto minmax(34px, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 2.1rem 1.4rem;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  transform: rotate(-2deg);
+}
+
+.tribute-finale-mark span {
+  font-size: clamp(1rem, 2vw, 1.45rem);
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.tribute-finale-mark i {
+  height: 0;
+  border-top: 4px dashed var(--orange);
+}
+
+.tribute-dialog {
+  width: min(calc(100% - 2rem), 680px);
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #fff;
+}
+
+.tribute-dialog::backdrop {
+  background: rgba(5, 6, 5, 0.84);
+  backdrop-filter: blur(7px);
+}
+
+.tribute-dialog-card {
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  padding: clamp(2rem, 6vw, 4rem);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top: 5px solid var(--orange);
+  border-radius: 8px;
+  background: #11130f;
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.52);
+  text-align: center;
+}
+
+.tribute-dialog-card::after {
+  content: "";
+  position: absolute;
+  right: -4rem;
+  bottom: -6rem;
+  width: 14rem;
+  aspect-ratio: 1;
+  border: 3rem solid rgba(239, 107, 27, 0.08);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.tribute-dialog[open] .tribute-dialog-card {
+  animation: tributePop 520ms cubic-bezier(0.18, 0.8, 0.22, 1) both;
+}
+
+.tribute-dialog .section-label {
+  color: var(--gold);
+}
+
+.tribute-dialog h2 {
+  margin: 0.45rem auto 1rem;
+  max-width: 15ch;
+  font-size: clamp(2rem, 5vw, 3.7rem);
+  line-height: 1;
+}
+
+.tribute-dialog-card > p:not(.section-label) {
+  max-width: 54ch;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.tribute-dialog-rides {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 1.6rem 0;
+}
+
+.tribute-dialog-rides span {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 850;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.tribute-dialog-close {
+  position: relative;
+  z-index: 1;
+}
+
+.confetti-layer {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.confetti-piece {
+  position: absolute;
+  top: -8vh;
+  left: var(--x);
+  width: var(--size);
+  height: calc(var(--size) * 0.48);
+  border-radius: 1px;
+  opacity: 0;
+  animation: confettiFall var(--duration) cubic-bezier(0.12, 0.62, 0.3, 1) var(--delay) both;
+}
+
+.confetti-piece.is-round {
+  aspect-ratio: 1;
+  height: var(--size);
+  border-radius: 50%;
+}
+
 .footer {
   padding: 2rem max(1.25rem, calc((100vw - 1180px) / 2));
   background: var(--road);
@@ -1374,6 +1579,15 @@ a {
 
   .lightbox-next {
     right: 0.5rem;
+  }
+
+  .tribute-finale {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .tribute-finale-mark {
+    max-width: 680px;
   }
 }
 
@@ -1508,6 +1722,36 @@ a {
     bottom: -3.25rem;
     transform: none;
   }
+
+  .tribute-finale {
+    min-height: auto;
+    padding: 4.5rem 1.25rem;
+  }
+
+  .tribute-finale-copy h2 {
+    font-size: 2.5rem;
+  }
+
+  .tribute-finale-mark {
+    gap: 0.45rem;
+    padding: 1.35rem 0.7rem;
+  }
+
+  .tribute-finale-mark span {
+    font-size: 0.86rem;
+  }
+
+  .tribute-finale-mark i {
+    border-top-width: 3px;
+  }
+
+  .tribute-dialog-card {
+    padding: 2.2rem 1.2rem;
+  }
+
+  .tribute-dialog h2 {
+    font-size: 2.35rem;
+  }
 }
 
 @keyframes routeSpin {
@@ -1535,6 +1779,31 @@ a {
 @keyframes wheelSpin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes tributePop {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes confettiFall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -8vh, 0) rotate(0deg);
+  }
+  10% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.95;
+    transform: translate3d(var(--drift), 116vh, 0) rotate(var(--spin));
   }
 }
 
