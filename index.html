@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A personal tribute webpage for the Activa, Yezdi Roadster, and CBR 250R Repsol."
+      content="A personal tribute webpage for the Activa, Yezdi Roadster, CBR 250R Repsol, and 2021 Red & Silver CBR 250R."
     />
-    <title>Three Rides, One Life</title>
+    <title>Four Rides, One Life</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -17,10 +17,10 @@
       <img
         class="hero-bg"
         src="assets/generated/hero-tribute.png"
-        alt="AI generated tribute scene showing a scooter, roadster, and sport bike on a mountain road at sunrise"
+        alt="AI generated tribute scene showing scooters and sport bikes on a mountain road at sunrise"
       />
       <nav class="nav" aria-label="Primary navigation">
-        <a class="brand" href="#home">Three Rides</a>
+        <a class="brand" href="#home">Four Rides</a>
         <div class="nav-links">
           <a href="#timeline">Timeline</a>
           <a href="#activities">Activities</a>
@@ -36,11 +36,11 @@
         <h1>For the Two-Wheelers That Carried Me.</h1>
         <p>
           One scooter that taught the road, one Roadster that made every night feel cinematic,
-          and one CBR that became a shield when life came too close.
+          one CBR Repsol that became a shield, and a 2021 Red & Silver CBR 250R brought home on 3 August 2026 because CBR love never dies.
         </p>
         <div class="hero-actions" aria-label="Page actions">
           <a class="button primary" href="#rides">Meet them</a>
-          <a class="button ghost" href="#cbr-memory">For the CBR</a>
+          <a class="button ghost" href="#cbr2-memory">New CBR 250R</a>
         </div>
       </div>
     </header>
@@ -51,8 +51,8 @@
         <h2>Not just machines. Milestones with wheels.</h2>
         <p>
           This page keeps the good things close: the Activa's dependable daily courage,
-          the Yezdi's dark-road personality, and the CBR 250R Repsol's final act of
-          protection. It is simple on purpose. The memories do the heavy lifting.
+          the Yezdi's dark-road personality, the CBR 250R Repsol's final act of
+          protection, and the new 2021 Red & Silver CBR 250R that keeps the passion alive.
         </p>
       </section>
 
@@ -67,18 +67,18 @@
         </article>
         <article class="stat reveal">
           <span class="stat-number">Rs 28k</span>
-          <span class="stat-label">CBR bought from pocket money</span>
+          <span class="stat-label">Repsol CBR (The Shield)</span>
         </article>
         <article class="stat reveal">
-          <span class="stat-number">3</span>
-          <span class="stat-label">rides that changed the story</span>
+          <span class="stat-number">3 Aug '26</span>
+          <span class="stat-label">2021 Red & Silver CBR 250R joined</span>
         </article>
       </section>
 
       <section class="timeline" id="timeline">
         <div class="section-heading">
           <p class="section-label">Timeline</p>
-          <h2>The road, in four dates.</h2>
+          <h2>The road, in five milestones.</h2>
         </div>
         <div class="timeline-track">
           <article class="timeline-item reveal">
@@ -98,8 +98,13 @@
           </article>
           <article class="timeline-item reveal">
             <time>27 Jun 2025</time>
-            <h3>The last picture with her</h3>
+            <h3>The last picture with Repsol</h3>
             <p>A final memory before the accident. She was lost, but she helped save a life.</p>
+          </article>
+          <article class="timeline-item reveal">
+            <time>3 Aug 2026</time>
+            <h3>CBR 250R Red & Silver arrives</h3>
+            <p>Bought a 2021 Red & Silver CBR 250R. Couldn't resist the CBR love—back on the clip-ons!</p>
           </article>
         </div>
       </section>
@@ -110,7 +115,7 @@
           <h2>Little scenes from my road life.</h2>
           <p>
             Pick a memory mode and the mini road changes with it. A small moving
-            dashboard for the jobs, night loops, hill stops, and quiet thankfulness.
+            dashboard for the jobs, night loops, hill stops, and new CBR rides.
           </p>
         </div>
         <div class="activity-board reveal" data-active-ride="activa">
@@ -119,16 +124,19 @@
             <div class="route-line"></div>
             <button class="mini-ride mini-activa" type="button" data-road-activity="activa" aria-label="Show Activa daily run"></button>
             <button class="mini-ride mini-yezdi" type="button" data-road-activity="yezdi" aria-label="Show Yezdi night loop"></button>
-            <button class="mini-ride mini-cbr" type="button" data-road-activity="cbr" aria-label="Show CBR hill memory"></button>
+            <button class="mini-ride mini-cbr" type="button" data-road-activity="cbr" aria-label="Show CBR Repsol memory"></button>
+            <button class="mini-ride mini-cbr2" type="button" data-road-activity="cbr2" aria-label="Show Red & Silver CBR run"></button>
             <span class="route-pin pin-home">Home</span>
             <span class="route-pin pin-night">Night</span>
             <span class="route-pin pin-hills">Hills</span>
+            <span class="route-pin pin-newcbr">Red/Silver</span>
           </div>
           <div class="activity-panel">
             <div class="activity-tabs" aria-label="Ride activity selector">
               <button class="activity-tab is-active" type="button" data-activity="activa">Daily run</button>
               <button class="activity-tab" type="button" data-activity="yezdi">Night loop</button>
-              <button class="activity-tab" type="button" data-activity="cbr">Hill memory</button>
+              <button class="activity-tab" type="button" data-activity="cbr">Repsol CBR</button>
+              <button class="activity-tab" type="button" data-activity="cbr2">Red & Silver CBR</button>
               <button class="activity-tab" type="button" data-activity="all">Garage ritual</button>
             </div>
             <article class="activity-story" aria-live="polite">
@@ -210,7 +218,8 @@
             <div class="game-ride-picker" aria-label="3D game ride selector">
               <button class="game-ride is-active" type="button" data-game-ride="activa">Activa</button>
               <button class="game-ride" type="button" data-game-ride="yezdi">Yezdi</button>
-              <button class="game-ride" type="button" data-game-ride="cbr">CBR</button>
+              <button class="game-ride" type="button" data-game-ride="cbr">Repsol CBR</button>
+              <button class="game-ride" type="button" data-game-ride="cbr2">Red/Silver CBR</button>
             </div>
 
             <div class="game-actions">
@@ -259,16 +268,17 @@
       <section class="garage" id="garage">
         <div class="garage-copy">
           <p class="section-label">3D memory garage</p>
-          <h2>Three silhouettes, one road.</h2>
+          <h2>Four silhouettes, one road.</h2>
           <p>
             A small animated scene built from simple 3D shapes: scooter, roadster,
-            sport bike. Tap a name to bring each one forward.
+            Repsol sport bike, and the new Red & Silver CBR 250R. Tap a name to bring each one forward.
           </p>
           <div class="focus-controls" aria-label="3D focus controls">
             <button class="focus-button is-active" type="button" data-focus="all">All</button>
             <button class="focus-button" type="button" data-focus="activa">Activa</button>
             <button class="focus-button" type="button" data-focus="yezdi">Yezdi</button>
-            <button class="focus-button" type="button" data-focus="cbr">CBR</button>
+            <button class="focus-button" type="button" data-focus="cbr">Repsol CBR</button>
+            <button class="focus-button" type="button" data-focus="cbr2">Red & Silver CBR</button>
           </div>
           <div class="garage-actions" aria-label="3D animation controls">
             <button class="garage-action is-active" type="button" data-garage-mode="idle">Idle</button>
@@ -287,7 +297,7 @@
 
       <section class="rides" id="rides">
         <div class="section-heading">
-          <p class="section-label">The three</p>
+          <p class="section-label">The four</p>
           <h2>What each one gave.</h2>
         </div>
 
@@ -407,15 +417,54 @@
             <figcaption>AI memorial portrait, kept whole and peaceful.</figcaption>
           </figure>
         </article>
+
+        <article class="vehicle-card cbr2-card reverse reveal" id="cbr2-memory">
+          <div class="vehicle-copy">
+            <p class="eyebrow">CBR 250R (2021 Model) / 3 Aug 2026 to now</p>
+            <h3>The Flame Reborn</h3>
+            <p>
+              Bought on 3 August 2026 because the love for the CBR 250R could never stay away.
+              Finished in iconic Sports Red and Metallic Silver, she brings back the full-faired
+              thrill, the super-smooth DOHC engine roar, and the absolute joy of riding a CBR.
+            </p>
+            <dl class="memory-list">
+              <div>
+                <dt>Bought</dt>
+                <dd>3 August 2026</dd>
+              </div>
+              <div>
+                <dt>Model & Color</dt>
+                <dd>2021 Sports Red & Silver</dd>
+              </div>
+            </dl>
+            <ul class="spec-list" aria-label="CBR 250R Red Silver specifications">
+              <li>249.6 cc liquid cooled DOHC single cylinder</li>
+              <li>26.5 PS at 8500 rpm / 22.9 Nm at 7000 rpm</li>
+              <li>6-speed manual, Dual-Channel ABS</li>
+              <li>Sports Red & Silver fairing</li>
+            </ul>
+            <div class="memory-actions">
+              <button class="memory-button" type="button" data-memory="cbr2">Light this memory</button>
+              <span class="memory-status" aria-live="polite">Waiting quietly.</span>
+            </div>
+          </div>
+          <figure class="vehicle-art">
+            <img
+              src="assets/generated/cbr250r-redsilver-dream.png"
+              alt="Portrait of a 2021 Honda CBR 250R in Red and Silver on a mountain road"
+            />
+            <figcaption>The new 2021 Red & Silver CBR 250R, carrying the CBR passion forward.</figcaption>
+          </figure>
+        </article>
       </section>
 
       <section class="gallery" id="gallery">
         <div class="section-heading">
-          <p class="section-label">Original photos</p>
-          <h2>The real ones.</h2>
+          <p class="section-label">Original photos & showcase</p>
+          <h2>The real ones & new arrival.</h2>
           <p>
-            These are the photos that anchor the page. The AI images are only atmosphere;
-            these are the proof.
+            These are the photos that anchor the page. The AI images capture the atmosphere;
+            these show the journey.
           </p>
         </div>
         <div class="gallery-grid">
@@ -480,13 +529,27 @@
               src="assets/photos/cbr-last-web.png"
               alt="Original last memory photo of the CBR 250R Repsol at Cafe Wild Flower in Mussoorie"
             />
-            <figcaption>Last picture memory with her.</figcaption>
+            <figcaption>Last picture memory with Repsol.</figcaption>
             <button
               class="photo-open"
               type="button"
               data-photo-src="assets/photos/cbr-last-web.png"
-              data-photo-caption="Last picture memory with her."
+              data-photo-caption="Last picture memory with Repsol."
               aria-label="Open CBR last picture memory"
+            ></button>
+          </figure>
+          <figure class="photo-frame wide reveal">
+            <img
+              src="assets/generated/cbr250r-redsilver-dream.png"
+              alt="The 2021 Red & Silver CBR 250R on a sunset mountain pass"
+            />
+            <figcaption>2021 Red & Silver CBR 250R, bought 3 August 2026.</figcaption>
+            <button
+              class="photo-open"
+              type="button"
+              data-photo-src="assets/generated/cbr250r-redsilver-dream.png"
+              data-photo-caption="2021 Red & Silver CBR 250R, bought 3 August 2026."
+              aria-label="Open Red and Silver CBR photo"
             ></button>
           </figure>
         </div>
@@ -509,7 +572,7 @@
           </p>
           <p>
             She deserves to be remembered whole, bright, orange, stubborn, beautiful,
-            and loved.
+            and loved. And today, the CBR story continues with the 2021 Red & Silver 250R.
           </p>
         </div>
       </section>
@@ -519,7 +582,7 @@
           <p class="section-label">One last celebration</p>
           <h2 id="tributeFinaleHeading">Every road became part of me.</h2>
           <p>
-            Three machines, thousands of kilometres, and a lifetime of memories that
+            Four machines, thousands of kilometres, and a lifetime of memories that
             will always remain mine.
           </p>
           <button class="tribute-celebrate" type="button" data-finale-open>
@@ -557,14 +620,15 @@
         <p class="section-label">From my whole heart</p>
         <h2 id="tributeDialogTitle">My love and tribute to all my lovely machines.</h2>
         <p id="tributeDialogMessage">
-          My Activa, my Yezdi Roadster, and my CBR 250R Repsol carried me across
+          My Activa, my Yezdi Roadster, my CBR 250R Repsol, and my new 2021 Red & Silver CBR 250R carry me across
           every road and into every memory. My gratitude and this love will always
           remain mine.
         </p>
-        <div class="tribute-dialog-rides" aria-label="My three machines">
+        <div class="tribute-dialog-rides" aria-label="My four machines">
           <span>Activa</span>
           <span>Yezdi Roadster</span>
-          <span>CBR 250R Repsol</span>
+          <span>CBR Repsol</span>
+          <span>CBR Red & Silver</span>
         </div>
         <button class="tribute-dialog-close" type="button" data-finale-close>
           Close with love

@@ -114,19 +114,27 @@ function setupActivityBoard() {
       mood: "Cinematic",
     },
     cbr: {
-      label: "CBR mode",
+      label: "Repsol CBR mode",
       title: "Hill memory, full heart.",
       text:
-        "The CBR activity is the waterfall stop, the orange fairing, the photo that stayed, and the gratitude I still carry.",
+        "The Repsol CBR activity is the waterfall stop, the orange fairing, the photo that stayed, and the gratitude I still carry.",
       distance: "Priceless",
       mood: "Grateful",
     },
+    cbr2: {
+      label: "Red & Silver CBR mode",
+      title: "Back on the CBR clip-ons.",
+      text:
+        "The new 2021 Red & Silver CBR 250R bought on 3 August 2026. The clip-ons feel natural, the DOHC engine roars, and the CBR passion lives on.",
+      distance: "Just starting",
+      mood: "Reborn",
+    },
     all: {
       label: "Garage mode",
-      title: "All three in one ritual.",
+      title: "All four in one ritual.",
       text:
-        "The garage activity keeps all three moving together: daily courage, night presence, and the bright sport-bike memory.",
-      distance: "3 rides",
+        "The garage activity keeps all four moving together: daily courage, night presence, Repsol memory, and the new Red & Silver fire.",
+      distance: "4 rides",
       mood: "Loved",
     },
   };
@@ -513,7 +521,7 @@ function initMountainGame(THREE, canvas) {
       yOffset: 0.18,
     },
     cbr: {
-      name: "CBR",
+      name: "Repsol CBR",
       idleSpeed: 6.2,
       maxSpeed: 30.5,
       acceleration: 14.6,
@@ -521,7 +529,20 @@ function initMountainGame(THREE, canvas) {
       steer: 17.2,
       traction: 5.35,
       jump: 9.1,
-      factory: createSportBike,
+      factory: (THREE, materials) => createSportBike(THREE, materials, "repsol"),
+      scale: 1.02,
+      yOffset: 0.12,
+    },
+    cbr2: {
+      name: "Red/Silver CBR",
+      idleSpeed: 6.5,
+      maxSpeed: 31.0,
+      acceleration: 15.0,
+      braking: 18.8,
+      steer: 17.5,
+      traction: 5.4,
+      jump: 9.2,
+      factory: (THREE, materials) => createSportBike(THREE, materials, "redsilver"),
       scale: 1.02,
       yOffset: 0.12,
     },
@@ -1746,9 +1767,10 @@ function createRider(THREE, materials, ride) {
     activa: { hip: [-0.34, 1.33], shoulder: [-0.18, 1.82], head: [-0.12, 2.15], handle: [0.92, 1.58], foot: [0.02, 0.58] },
     yezdi: { hip: [-0.38, 1.34], shoulder: [-0.08, 1.82], head: [0.02, 2.14], handle: [1.02, 1.4], foot: [-0.02, 0.62] },
     cbr: { hip: [-0.45, 1.34], shoulder: [0.18, 1.7], head: [0.38, 1.98], handle: [1.0, 1.34], foot: [-0.02, 0.62] },
+    cbr2: { hip: [-0.45, 1.34], shoulder: [0.18, 1.7], head: [0.38, 1.98], handle: [1.0, 1.34], foot: [-0.02, 0.62] },
   };
-  const setup = setups[ride];
-  const helmetMaterial = ride === "cbr" ? materials.orange : ride === "yezdi" ? materials.green : materials.white;
+  const setup = setups[ride] || setups.activa;
+  const helmetMaterial = ride === "cbr" ? materials.orange : ride === "cbr2" ? materials.red : ride === "yezdi" ? materials.green : materials.white;
   const torsoX = (setup.hip[0] + setup.shoulder[0]) / 2;
   const torsoY = (setup.hip[1] + setup.shoulder[1]) / 2;
   const torso = addSphere(THREE, group, [0.62, 0.92, 0.54], [torsoX, torsoY, 0], materials.black);
@@ -1857,7 +1879,7 @@ function setupMountainCanvasFallback() {
       trim: "#151514",
     },
     cbr: {
-      name: "CBR",
+      name: "Repsol CBR",
       idleSpeed: 98,
       maxSpeed: 304,
       jump: 540,
@@ -1865,6 +1887,16 @@ function setupMountainCanvasFallback() {
       body: "#ef6b1b",
       accent: "#b92720",
       trim: "#f2eee4",
+    },
+    cbr2: {
+      name: "Red/Silver CBR",
+      idleSpeed: 100,
+      maxSpeed: 310,
+      jump: 545,
+      gravity: 1560,
+      body: "#d82020",
+      accent: "#c0c0c0",
+      trim: "#151515",
     },
   };
 
@@ -2805,20 +2837,23 @@ function initGarage(THREE, canvas) {
   const vehicles = {
     activa: createScooter(THREE, materials),
     yezdi: createRoadster(THREE, materials),
-    cbr: createSportBike(THREE, materials),
+    cbr: createSportBike(THREE, materials, "repsol"),
+    cbr2: createSportBike(THREE, materials, "redsilver"),
   };
 
-  vehicles.activa.position.set(-3.35, 0, 0);
-  vehicles.yezdi.position.set(0, 0, 0);
-  vehicles.cbr.position.set(3.35, 0, 0);
+  vehicles.activa.position.set(-4.2, 0, 0);
+  vehicles.yezdi.position.set(-1.4, 0, 0);
+  vehicles.cbr.position.set(1.4, 0, 0);
+  vehicles.cbr2.position.set(4.2, 0, 0);
 
   Object.values(vehicles).forEach((vehicle) => garage.add(vehicle));
 
   const focusTargets = {
-    all: { x: 0, y: 1.75, z: 12.6, lookX: 0 },
-    activa: { x: -3.35, y: 1.35, z: 6.2, lookX: -3.35 },
-    yezdi: { x: 0, y: 1.35, z: 6.0, lookX: 0 },
-    cbr: { x: 3.35, y: 1.35, z: 6.2, lookX: 3.35 },
+    all: { x: 0, y: 1.85, z: 14.2, lookX: 0 },
+    activa: { x: -4.2, y: 1.35, z: 6.2, lookX: -4.2 },
+    yezdi: { x: -1.4, y: 1.35, z: 6.0, lookX: -1.4 },
+    cbr: { x: 1.4, y: 1.35, z: 6.2, lookX: 1.4 },
+    cbr2: { x: 4.2, y: 1.35, z: 6.2, lookX: 4.2 },
   };
 
   let activeTarget = focusTargets.all;
@@ -2934,6 +2969,7 @@ function createMaterials(THREE) {
       opacity: 0.64,
     }),
     gold: new THREE.MeshStandardMaterial({ color: 0xd8a64d, roughness: 0.4, metalness: 0.55 }),
+    silver: new THREE.MeshStandardMaterial({ color: 0xd0d4d8, roughness: 0.3, metalness: 0.78 }),
     road: new THREE.MeshStandardMaterial({ color: 0x0c0d0b, roughness: 0.95, metalness: 0.02 }),
     roadLine: new THREE.MeshStandardMaterial({ color: 0xe2b45a, roughness: 0.75, metalness: 0.02 }),
   };
@@ -3128,10 +3164,15 @@ function createRoadster(THREE, materials) {
   return group;
 }
 
-function createSportBike(THREE, materials) {
+function createSportBike(THREE, materials, variant = "repsol") {
   const group = new THREE.Group();
   group.userData.wheels = [];
   group.userData.lights = [];
+
+  const mainColor = variant === "redsilver" ? materials.red : materials.orange;
+  const secondaryColor = variant === "redsilver" ? (materials.silver || materials.white) : materials.white;
+  const accentColor = variant === "redsilver" ? materials.red : materials.red;
+  const tailFairing = variant === "redsilver" ? materials.red : materials.orange;
 
   const rear = createWheel(THREE, materials, 0.4);
   const front = createWheel(THREE, materials, 0.4);
@@ -3141,19 +3182,19 @@ function createSportBike(THREE, materials) {
   group.userData.wheels.push(rear, front);
 
   addTube(THREE, group, [-0.8, 0.68, 0], [0.65, 0.85, 0], 0.045, materials.chrome);
-  addBox(THREE, group, [1.12, 0.42, 0.48], [0.12, 0.95, 0], materials.orange, [0, 0, -0.06]);
-  addBox(THREE, group, [0.76, 0.36, 0.5], [0.56, 1.08, 0], materials.white, [0, 0, 0.16]);
-  addBox(THREE, group, [0.54, 0.3, 0.52], [0.72, 0.88, 0], materials.red, [0, 0, 0.2]);
+  addBox(THREE, group, [1.12, 0.42, 0.48], [0.12, 0.95, 0], mainColor, [0, 0, -0.06]);
+  addBox(THREE, group, [0.76, 0.36, 0.5], [0.56, 1.08, 0], secondaryColor, [0, 0, 0.16]);
+  addBox(THREE, group, [0.54, 0.3, 0.52], [0.72, 0.88, 0], accentColor, [0, 0, 0.2]);
   addBox(THREE, group, [0.9, 0.16, 0.52], [0.08, 0.74, 0], materials.black, [0, 0, -0.08]);
-  addBox(THREE, group, [0.32, 0.08, 0.54], [0.32, 1.17, 0], materials.red, [0, 0, 0.1]);
-  addBox(THREE, group, [0.44, 0.08, 0.55], [0.62, 1.21, 0], materials.orange, [0, 0, 0.22]);
-  addBox(THREE, group, [0.28, 0.06, 0.56], [0.74, 1.01, 0], materials.white, [0, 0, -0.18]);
+  addBox(THREE, group, [0.32, 0.08, 0.54], [0.32, 1.17, 0], accentColor, [0, 0, 0.1]);
+  addBox(THREE, group, [0.44, 0.08, 0.55], [0.62, 1.21, 0], mainColor, [0, 0, 0.22]);
+  addBox(THREE, group, [0.28, 0.06, 0.56], [0.74, 1.01, 0], secondaryColor, [0, 0, -0.18]);
   addBox(THREE, group, [0.78, 0.17, 0.42], [-0.46, 1.22, 0], materials.rubber, [0, 0, -0.08]);
-  addBox(THREE, group, [0.46, 0.34, 0.32], [-0.72, 1.06, 0], materials.orange, [0, 0, -0.28]);
-  addBox(THREE, group, [0.42, 0.14, 0.34], [-0.92, 1.22, 0], materials.red, [0, 0, -0.2]);
+  addBox(THREE, group, [0.46, 0.34, 0.32], [-0.72, 1.06, 0], tailFairing, [0, 0, -0.28]);
+  addBox(THREE, group, [0.42, 0.14, 0.34], [-0.92, 1.22, 0], secondaryColor, [0, 0, -0.2]);
   addBox(THREE, group, [0.42, 0.22, 0.36], [0.82, 1.38, 0], materials.glass, [0, 0, -0.28]);
-  addSphere(THREE, group, [0.2, 0.13, 0.08], [0.92, 1.1, 0.24], materials.white);
-  addSphere(THREE, group, [0.13, 0.09, 0.055], [0.93, 1.07, -0.24], materials.white);
+  addSphere(THREE, group, [0.2, 0.13, 0.08], [0.92, 1.1, 0.24], secondaryColor);
+  addSphere(THREE, group, [0.13, 0.09, 0.055], [0.93, 1.07, -0.24], secondaryColor);
   addHeadlight(THREE, group, [1.0, 1.12, 0.26]);
   addHeadlight(THREE, group, [1.0, 1.1, -0.26]);
   addSphere(THREE, group, [0.055, 0.055, 0.045], [0.8, 1.02, 0.33], materials.amber);
